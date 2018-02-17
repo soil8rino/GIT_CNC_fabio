@@ -1,0 +1,20 @@
+;                       principi passo  lungh  passaggi asportaz    passaggi rifinit
+o<subroutine_filetta> call [2]   [0.7]  [10]       [3]                  [0]           [30] [15] [1] [90]
+; o_filetta> call [2] [0.700] [3.500] [0.6] [1] [30] [15] 
+; 
+; i parametri di filettatura sono i seguenti
+
+  ; #1 <_n_principi>= 2 ; da 1 a 5 principi per numeri interi
+  ; #2 <_passo>
+  ; #3 <_lunghezza>= [#<_passo>*5]
+  ; #4 <_passaggi_asportazione> numero intero. 3 dovrebbe andar bene per 0.7 passo
+  ; #5 <_n_passaggi_rifinitura>= 1 ; 1 effettua un ciclo avanti e indietro, ovvero 2 passaggi di rifinitura
+  ; #6 <_vel_sgrossatura>= 30
+  ; #7 <_vel_rifinitura>= 15; [#<_vel_sgrossatura>/2]  
+  ; #8 <_verso>= -1 sinistro, 1 destro
+  ; #9 <_ingresso dolce>= gradi dove finisce la discesa d'ingresso della fresa. 0 = scalino netto
+G92.1 ;azzera le coordinate relative all'uscita
+G10 L2 P1 X0 Y0 Z0 A0 
+(MSG, Pezzo finito)
+M5 M9 ;M5 - stop the spindle. M9 - turn all coolant off.
+M2 ;M2 - end the program.

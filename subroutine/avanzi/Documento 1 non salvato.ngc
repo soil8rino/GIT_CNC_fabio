@@ -1,0 +1,35 @@
+
+;subroutines di controllo inserimento dati opportuni
+o100 if [#<prof_asportaz> GT #<prof_taglio>]
+(MSG, RICHIESTA IMPOSSIBILE !! Profondità di asportazione per singolo passaggio maggiore di quella di taglio finale)
+M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o100 endif 
+
+
+
+
+o101 if [#<lunghezza_asportaz> LT 0] ; coordinate x1 e x2 sbagliate o invertite
+(MSG, coordinata x inizio maggiore della coordinata x di arrivo)
+M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o101 elseif [#<coord_x2> EQ #<coord_x1>]
+(MSG, tronca o affonda con solco largo lo spessore  della fresa)
+M0 ; temporaneo per sviluppo routine
+o101 else [#<lunghezza_asportaz> LT #1] ; manca lo spazio per asportare
+(MSG, spazio tra le due coordinate x insufficiente per il diametro della fresa. Necessari o fresa più piccola o spazio più grande)
+M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o101 endif 
+
+
+
+o150 if [#<coord_x1> EQ #<coord_x2>]    ; se x1 e x2 sono uguali fermati dopo fatto il taglio
+(MSG, eseguita asportazione)
+M2
+o150 else [#<lunghezza_asportaz> GT #1] ; se non è solo affonda, prosegue asportazione verso X2
+
+G1 X[#7+#1] A#<gradi_finali_asportaz> F#5 
+G1 A[#<gradi_finali_asportaz>+360]    
+
+o150 endif
+
+
+

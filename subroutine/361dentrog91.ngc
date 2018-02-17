@@ -1,0 +1,78 @@
+(info: corazza 361 piccola -- Ctrl-U modifica)
+o<361dentrog91> sub
+
+
+#<prof_cilindro>     = #1 (= 5.3 altezza cilindro)
+#<diam_cilindro>     = #2 (= 6.9 diam cilindro)
+#<lunghezza_corazza> = #3 (= 17.5 lungh corazza)
+#<z_incr>            = #4 (= 0.250 asportaz Z)
+#<velocita>          = #5 (= 1 velocita)
+#<diam_fresa>        = #6 (= 2.00 diam fresa)
+#<dist_fori>         = #7 (= 15.00 distanza tra fori)
+#<n_fori>            = #8 (= 3 numero di pezzi)
+
+#<raggio_fresa>    = [0.5 * #6]
+#<raggio_cilindro> = [[0.5 * #2] - #<raggio_fresa>]
+#<lunghezza_cono>  = [#3 - #1]
+
+; coefficienti della cubica, ovvero del profilo della corazza 361
+#<intercetta_x> =  0 ; 1.2356236
+#<coef_x1>      =  0.5332291
+#<coef_x2>      = -0.0323905
+#<coef_x3>      =  0.0007024 
+
+#<raggio_attuale> = [[#<intercetta_x> + #<coef_x1>*#<lunghezza_cono> + #<coef_x2>*#<lunghezza_cono>**2 + #<coef_x3>*#<lunghezza_cono>**3] -#<raggio_fresa> ]
+
+G0 X#<raggio_attuale> Y0 Z0
+F[#<velocita>*50] 
+; ############ pezzo foratura
+G91 ; coordinate incrementali
+; sotto. Fora tutto il pezzo centralmente
+G98 G83 X0 Y#7 Z-[#3+1] R1 L#8 Q[[#3+1]/5] ; y#7 increm, Z = prof finale, R = altezza estrazione, Q affondo ogni volta
+
+#<conta> = [#8] ; contatore dei pezzi da fare
+ o100 do
+; PARAMETRI DEL PEZZO
+  #<x_incr> = 0
+ #<fattore> = #<lunghezza_cono> 
+ #<apice> = 1.23
+ #<raggio_attuale> = [[#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3] - #<raggio_fresa> ]
+ #<raggio_finale>  = [[#<intercetta_x> + #<coef_x1>*#<apice> + #<coef_x2>*#<apice>**2 + #<coef_x3>*#<apice>**3] - #<raggio_fresa> ]
+
+G90 ; coordinate assolute
+G0 X-0.5 Y[#7*#<conta>] ; -0.5 ovvero rattoppo da migliorare
+F[#<velocita>*250]
+G91
+  o101 do ; pezzo cilindrico per inserzione nel fusto
+      G1 Z-#4 F[#<velocita>*25]
+ F[#<velocita>*250]
+      G2 X0 Y0 I#<raggio_cilindro>
+   o101 while [#<_z> GT - #1]
+
+G90 ; coordinate assolute necessarie per centrare il cerchio della parte a profilo cubico
+G0 X0 Y[#7*#<conta>]
+
+G91 ; coordinate incrementali
+   o102 do
+;g1 x0 y0 Z-#4
+      G0 Z-#4 X#<x_incr>F[#<velocita>*25]
+F[#<velocita>*250]
+      G2 Y0 I#<raggio_attuale>
+(DEBUG, #<raggio_attuale>)
+      #<fattore> =    [#<fattore> - #4] 
+      #<raggio_futuro> = [[#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3]-#<raggio_fresa> ]
+      #<x_incr> = [#<raggio_attuale> - #<raggio_futuro>]
+      #<raggio_attuale> = [[#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3]-#<raggio_fresa> ]
+   o102 while [#<raggio_attuale> GT #<apice>] ;[#<_z> GT -#3+2] ; +2 ovvero rattoppo da rivedere
+ #<conta> = [ #<conta> - 1]
+G90 ; coordinate assolute
+G0 Z0 
+o100 while [#<conta> GT 0]
+
+G90 ; torna a casa
+G0 Z-1
+G0 X0 Y0 Z0
+(MSG, pezzo finito)
+o<361dentrog91> endsub
+
+

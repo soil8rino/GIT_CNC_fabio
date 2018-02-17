@@ -1,0 +1,54 @@
+; profilo sezione omas gentleman
+; funziona ma fa un pezzo piu' piccolo
+
+o<profilo_con_arco> sub
+  (code here)
+
+; imboccatura pennino
+
+G0	X 0	 Z [6.350+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]; piu alto del bordo	
+
+G1	X 0	 Z [4.008+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+G1	X 2.000  Z [4.062+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+G0	X 2.000	 Z [4.062+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+G0		 Z [6.350+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]; piu alto del bordo	
+
+; fine scalino imboccatura, inizio stondatura 
+; sotto, manovra di accostamento e poi affondo, infine arco
+; G2 = senso orario, G3 antiorario, X e Z punti di arrivo finali
+; I = distanza della coordinata X del centro arco rispetto al punto di partenza 
+; K = distanza della coordinate Z del centro arco rispetto al punto di partenza 
+G0		 Z [4.06+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+G1		 Z [4.062+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+G2 X2.327 Z[3.684+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]  I[4.062-3.684] K0
+(G1	X 2.005	 Z [3.975+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.007	 Z [3.949+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.012	 Z [3.922+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.018	 Z [3.896+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.027	 Z [3.870+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.039	 Z [3.846+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.052	 Z [3.823+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.068	 Z [3.801+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.085	 Z [3.780+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.104	 Z [3.761+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.125	 Z [3.744+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.147	 Z [3.728+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.17	 Z [3.715+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.195	 Z [3.704+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.221	 Z [3.695+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.247	 Z [3.689+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.273	 Z [3.685+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.3	 Z [3.683+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+(G1	X 2.327	 Z [3.684+#<_fattore>-#<_asportazione_unitaria>*#<_giri>])
+; salita rettilinea	
+G1	X 13.418 Z [4.472+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+G0		 Z [6.350+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]; piu alto del bordo	
+G1	X 13.44	 Z [3.671+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+
+; scalino del pezzo della filettatura
+G1	X 13.444 Z [3.671+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+G1	X 20.000 Z [3.671+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+G0	X 20.000 Z [6.350+#<_fattore>-#<_asportazione_unitaria>*#<_giri>]; piu alto del bordo
+
+o<profilo_con_arco> endsub
+M2

@@ -1,0 +1,93 @@
+(info: scasso corazza 361 piccola -- Ctrl-U modifica)
+o<361dentrog91plus> sub
+
+
+#<diam_fresa>        = #1  (= 2.00 diam fresa)
+#<lungh_fresa>       = #2  (= 20.00 lungh fresa)
+#<velocita>          = #3  (= 1 velocita)
+#<z_incr>            = #4  (= 0.250 asportaz Z)
+#<dist_fori>         = #5  (= 15.00 distanza tra fori)
+#<n_fori>            = #6  (= 3 numero di pezzi)
+#<offset_x>          = #7  (= 8.1 x +dx -sx del bordo pezzo)
+#<lunghezza_corazza> = #8  (= 17.5 lungh corazza)
+#<prof_cilindro>     = #9  (= 5.3 altezza cilindro)
+#<diam_cilindro>     = #10 (= 6.9 diam cilindro)
+#<offset_eccentrico> = #11 (= 1.0 spostamento centro)
+
+; parametri derivati
+#<raggio_fresa>    = [0.5 * #1]
+#<raggio_cilindro> = [[0.5 * #10] - #<raggio_fresa>]
+#<lunghezza_cono>  = [#8 - #9]
+#<conta> = [#6] ; contatore dei pezzi da fare
+
+; coefficienti della cubica, ovvero del profilo della corazza 361
+#<intercetta_x> =  [#9/#8] ;1.2356236
+#<coef_x1>      =  0.5332291
+#<coef_x2>      = -0.0323905
+#<coef_x3>      =  0.0007024 
+#<apice> = #<raggio_fresa> ; raggio massimo apice. Se maggiore del raggio fresa allarga troppo
+#<raggio_finale>  = [[#<intercetta_x> + #<coef_x1>*#<apice> + #<coef_x2>*#<apice>**2 + #<coef_x3>*#<apice>**3] - #<raggio_fresa> ]
+
+; controlli. messi qui impediscono danni
+o10 if [#2 LT #8]; fermati e avverti
+ (MSG, Fresa troppo corta per il lavoro ! )
+ M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o10 endif
+
+;o11 if [#<raggio_fresa> GT #<intercetta_x>]; fermati e avverti
+; (MSG, diametro fresa troppo grande per il lavoro ! )
+; M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+;o11 endif
+
+; ############# forature centrali #7 offset_x #11 spessore parete
+G0 X[-#7 + #<raggio_cilindro> + #11] 
+G91 ; coordinate incrementali PER I FORI CENTRALI PROFONDI
+F[#<velocita>*50]
+; sotto. Fora tutto il pezzo centralmente
+G98 G83 X0 Y#5 Z-[#8+2] R1 L#6 Q[[#8+2]/5] ; y#5 increm, Z = prof finale, R = altezza estrazione, Q affondo ogni volta
+F[#<velocita>*250] 
+
+
+o100 do ; SUBROUTINE COMPLETA. CILINDRO E PROFILO CUBICO
+
+G90 ; coordinate assolute
+G0 X[-#7 + #11] Y[#5*#<conta>] Z1 ;cilindro superiore [-#7+#<raggio_cilindro>+#11] 
+G0 Z0
+G91
+  o101 do ; SUBROUTINE parte cilindrica per inserzione nel fusto
+      G2 X0 Y0  Z-#4 I#<raggio_cilindro>
+  o101 while [#<_z> GT - #9]
+
+; parametri INIZIALI del profilo cubico
+#<x_incr> = 0
+#<fattore> = #<lunghezza_cono>  
+#<raggio_attuale> = #<raggio_cilindro> ; ALLINEA CILINDRO E CUBICA SU ASSE CENTRALE
+
+
+G90 ; coordinate assolute necessarie per centrare la parte a profilo cubico
+G0 X[-#7 + #11]  Y[#5*#<conta>] 
+
+G91 ; coordinate incrementali parte a profilo cubico
+
+   o102 do ;SUBROUTINE PROFILO CUBICO
+      G0 X#<x_incr>
+      G2 Y0 Z-#4 I#<raggio_attuale>
+; (DEBUG, #<raggio_attuale>)
+      #<fattore> =    [#<fattore> - #4] 
+      #<raggio_futuro> = [[#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3]-#<raggio_fresa> ]
+      #<x_incr> = [#<raggio_attuale> - #<raggio_futuro>]
+      #<raggio_attuale> = [[#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3]-#<raggio_fresa> ]
+   o102 while [#<raggio_attuale> GT #<apice>] ; si ferma quando arriva all'apice della cubica
+G0 X0
+#<conta> = [ #<conta> - 1]
+G90 ; coordinate assolute
+G0 Z1
+o100 while [#<conta> GT 0] ; fine SUBROUTINE COMPLETA. CILINDRO E PROFILO CUBICO
+
+G90 ; torna a casa g54
+G0 X0 Y0
+G0 Z0
+(MSG, scavo 361 finito)
+o<361dentrog91plus> endsub
+
+

@@ -1,0 +1,73 @@
+(cappuccio OMAS LADY CELLULOIDE, AGGIORNAMENTO 2018)
+
+ G21 G19 G54 G40 G49 G80  
+(G00=massima rapidita', 21=in mm, 19=piano YZ                                   )
+(90=modo distanza assoluta, 40=Compensation Off                                )
+(49=cancels tool length compensation, 80=Cancel Canned Cycle                   )
+(71=sconosciuto, 91.1=Arc Distance Mode                                        )
+
+#<z_increm> = -0.2  (incremento + = sale    //    decremento - = scende    di z)
+#<n_facce> = 12       (numero di facce)
+#<diam_magg_cono> = 12.4    (diametro maggiore cono)
+#<diam_mino_cono> = 10.75    (diametro minore cono)
+#<cateto_magg> = 12.78    (cateto maggiore, ovvero MISURA CORSA LUNGHEZZA CAPPUCCIO)
+ (VARIABILI VELOCITà)
+#<Veloc_F> = 400
+
+
+(___________ variabili calcolate __________) 
+
+(#101=[#<z_increm>*[-1]] )  (rende positivo il valore z se è negativa)
+#<ang_rot_singola>=[360/#<n_facce>]      (angolo di una sola faccia, di rotazione)
+#<raggio_magg>=[#<diam_magg_cono>/2] (raggio maggiore)
+#<raggio_mino>=[#<diam_mino_cono>/2] (raggio minore)
+#<cateto_mino>=[#<raggio_magg>-#<raggio_mino>] (cateto minore della parte da asportare)
+#107=[#<cateto_magg>/#<cateto_mino>] (rapporto tra cateti della parte da asportare)
+#108=[[#<diam_magg_cono>-#<diam_mino_cono>]*-1]  (VALORE DELLA Z FATTO TRA DIFFERENZA DIAM MAGG E MINORE PER L' ULTIMA RIFINITURA) 
+
+
+
+(#<ripetiz_spessore>=[#<cateto_mino>/[#<z_increm>*[-1]]]) (QUESTA FUNZIONA !!!!!!)
+#<ripetiz_spessore>=[#<cateto_mino>/ABS[#<z_increm>]] (Questa forse .....)
+
+
+(valori di partenza)
+
+#<z_attuale>=[#<z_increm>] (valore della zeta incrementale)
+#<x_increm>=[#<cateto_magg>/#<ripetiz_spessore>] (valore della ics incrementale)
+G90 G0 A0 X0 Z[#<z_attuale>] F#<Veloc_F>
+
+(ROUTINE PASSAGGIO CON ROTAZIONE)
+
+(programma vero e proprio. taglia una fetta spessa #<z_increm> per #<n_facce> facce)
+(poi)
+(abbassa la zeta di una ulteriore fetta di spessore #<z_increm>)
+(poi)
+(taglia una fetta spessa #<z_increm> per #<n_facce> facce ....)
+( e ripete il ciclo per #<ripetiz_spessore> spessori)
+o<principale> repeat [#<ripetiz_spessore>]
+
+o800 repeat [#<n_facce>] (passa una faccia con tre valori X da #7 mmm e ruota l'asse di #20 gradi)
+G91 X0  Z#<z_attuale>
+G90 X#<x_increm> Z0 F#<Veloc_F> (X#<x_increm> prima striscia )
+G90 X0 Z#<z_attuale> (torna a capo senza abbassare la Z )
+G91 G0 A#<ang_rot_singola> F1000 (ruota l'asse A di #<ang_rot_singola> gradi)
+o800 endrepeat
+
+(aumenta/ diminuisce il solo valore di Z)
+(passa a vecchia O700, che abbassa/alza la Z)
+#<z_attuale>=[#<z_attuale>+#<z_increm>] (zeta incrementale)
+#<x_increm>=[#<x_increm>+[#<cateto_magg>/#<ripetiz_spessore>]] (ics incrementale)
+
+G91 A0 X0 Z0 F#<Veloc_F> 
+(M98P2001L[#<n_facce>] routine rifinitura a misura precisa pezzo)
+o<principale> endrepeat 
+
+o900 repeat [#<n_facce>] 
+G90 X0 Z0 (dal punto finale della misura del cono piccolo fa le facce fino a z zero #<n_facce> volte)
+G90 Z#108 (torna a capo senza abbassare la Z)
+G90 X#<cateto_magg> Z0 F#<Veloc_F> (prima striscia)
+G90 X0 
+G91 A#<ang_rot_singola> F1000 (ruota l'asse A di #<ang_rot_singola> gradi)
+o900 endrepeat
+M2

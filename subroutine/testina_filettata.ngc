@@ -1,0 +1,161 @@
+(info: IN FIERI testina filettata -- Ctrl-U modifica)
+o<testina_filettata> sub
+
+#<diam_fresa> =  #1  (= 2.00 diam fresa)
+#<lung_fresa> =  #2  (= 8.00 lungh fresa)
+#<velocita>   =  #3  (= 500 velocita)
+#<diam_ext>   =  #4  (= 8.3 diam est)
+#<diam_int>   =  #5  (= 6.2 diam int)
+#<alt_ext>    =  #6  (= 7 altezza ext)
+#<prof_iniz>  =  #7  (= 0 prof iniz filetto)
+#<profondita> =  #8  (= 6 profondita)
+#<passo>      =  #9  (= 0.7 passo filetto)
+#<principi>   =  #10 (= 4 principi. Max 4)
+#<verso_elic> =  #11 (= 1  dx 1 sx -1)
+
+
+
+; parametri calcolati dai dati di base
+F#3
+;___________Raggi______________
+#<raggio_fresa>         = [0.5 * #1]
+#<raggio_ext_pezzo>     = [[0.5 * #4]-#<raggio_fresa>]
+#<raggio_int_pezzo>     = [[0.5 * #5]-#<raggio_fresa>]
+#<raggio_apice_filetto> = [#<raggio_int_pezzo>+#<prof_filetto>]
+#<raggio_attuale_pezzo> = #<raggio_int_pezzo>; variabile dinamica
+
+
+;___________Profondita_________
+#<z_sicura>             = 1
+#<z_ext>                = [-#6]
+#<z_prof_finale>        = [-#8]
+#<lunghezza_filetto>    = [#8-#7]
+
+;___________Filettatura________
+#<passo_reale>          = [#9 * #10]
+#<giri_elicoide>        = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
+#<prof_filetto>         = [0.5 * #9 * sqrt[3]]
+
+o<filetta_dx> sub
+G2 X#<_x> Y#<_y> I[-#<raggio_apice_filetto>] J0 Z#<z_prof_finale> P#<giri_elicoide>
+o<filetta_dx> endsub              
+
+o<filetta_sx> sub
+G3 X#<_x> Y#<_y> I[-#<raggio_apice_filetto>] J0 Z#<z_prof_finale> P#<giri_elicoide>
+o<filetta_sx> endsub  
+
+
+
+;___________Contatori__________
+#<n_cerchi_interni>     = [#<raggio_int_pezzo>/#<raggio_fresa>]
+; #<n_cerchio_attuale>    = #<n_cerchi_interni>
+
+
+; controlli. messi qui impediscono danni
+o10 if [#6 GT #2 OR #8 GT #2]; fermati e avverti
+ (MSG, Fresa troppo corta per il lavoro ! )
+ M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o10 endif
+o11 if [#10 GT 4 OR #10 LT 1]; fermati e avverti
+ (MSG, Sono permessi 1, 2, 3 o 4 principi solamente)
+ M2
+o11 endif
+o12 if [#4 LT #5]; fermati e avverti
+ (MSG, Probabile inversione dei due diametri int et ext !)
+ M2
+o12 endif
+
+
+
+G54 G0 X0 Y0 Z0 ;move to the position
+G28.1 ;store the current absolute position in the variables
+; la riga sopra definisce la posizione dove tornare quando serve
+
+; si presuppone partenza dal centro del cerchio
+; spostamento alla periferia esterna e fresatura
+G0 X#<raggio_ext_pezzo> Y0 Z#<z_sicura>
+; affonda esterno
+G1 Z#<z_ext>
+; taglio circonferenza esterna
+G2 X#<_x> Y0 I[-#<raggio_ext_pezzo>] J0
+; salita a zona libera da ostacoli
+G0 Z#<z_sicura>
+; spostamento alla periferia interna
+G0 X#<raggio_int_pezzo> Y0 
+; affonda interno
+G1 Z#<z_prof_finale>
+
+; loop per svuotamento circonferenze interne
+; se si usa il while, s'incarta sull'ultimo giro con un cerchio a raggio zero
+o100 repeat [#<n_cerchi_interni>]
+     G2 X#<_x> Y0 I[-#<raggio_attuale_pezzo>] J0
+     G0 Z#<z_sicura> ; torna su
+     #<raggio_attuale_pezzo> = [#<raggio_attuale_pezzo>-#<raggio_fresa>]
+     G0 X[#<_x>- #<raggio_fresa>] ;scorcia il raggio  
+     G1 Z#<z_prof_finale> ; ri-affonda
+     ; #<n_cerchio_attuale> = [ #<n_cerchi_interni> - 1]
+o100 endrepeat
+
+; torna a casa SPERIMENTALE
+G28 Z#<z_sicura> 
+; torna al bordo interno per cominciare la filettatura
+G0 Z-#7 ; scende a inizio filettattura
+G0 X#<raggio_apice_filetto> Y0 F[#3/5];va al bordo lentamente 
+F#3
+
+; ; routine per filettatura interna sia dx che sx.
+;o111 if [#11 GT 0] ; #11  è il verso della filettatura.
+ (MSG, esecuzione filettatura interna destra)
+ ; questa parte sotto si occupa del numero di principi
+ ; ovvero di spostare il punto iniziale intorno alla circonferenza interna
+       ; conviene passare a coordinate polari ? The @n is the distance and ^n is the angle
+        o112 if [#10 EQ 1 OR #10 EQ 2 OR #10 EQ 3 OR #10 EQ 4]; il primo lo fa sempre
+             o<filetta_dx> call
+             G0 X0 Y0 ; forse G28 Z-#7 ?
+        o112 elseif [#10 EQ 2] ;#10 = numero di principi
+             G0 Z-#7
+              ; coordinate polari, si sposta di un diametro
+             G1 @[#<raggio_apice_filetto>] ^180
+             o<filetta_dx> call
+             G0 X0 Y0
+        o112 elseif [#10 EQ 3]
+             G0 Z#-7
+             G1 @#<raggio_apice_filetto> ^120 
+; TODO da rivedere i parametri I e J del secondo e trezo filetto OK piazzamento troppo grande diametro
+             G2 X#<_x> Y#<_y> I[- cos[120]*#<raggio_apice_filetto>] J[- sin[120]*#<raggio_apice_filetto>] Z#<z_prof_finale> P#<giri_elicoide>              
+             G0 X0 Y0 
+             G0 Z-#7
+             G1 @#<raggio_apice_filetto> ^240 
+             G2 X#<_x> Y#<_y> I[- cos[240]*#<raggio_apice_filetto>] J[- sin[240]*#<raggio_apice_filetto>] Z#<z_prof_finale> P#<giri_elicoide>
+        o112 elseif [#10 EQ 4]
+             G0 Z-#7
+             G1 @#<raggio_apice_filetto> ^90 
+; TODO da rivedere i parametri I e J del secondo e trezo filetto OK piazzamento troppo grande diametro
+             G2 X#<_x> Y#<_y> I[- cos[90]*#<raggio_apice_filetto>] J[- sin[90]*#<raggio_apice_filetto>] Z#<z_prof_finale> P#<giri_elicoide>              
+             G0 X0 Y0 
+             G0 Z-#7
+             G1 @#<raggio_apice_filetto> ^180
+             G2 X#<_x> Y#<_y> I[- cos[180]*#<raggio_apice_filetto>] J[- sin[180]*#<raggio_apice_filetto>] Z#<z_prof_finale> P#<giri_elicoide>
+             G0 X0 Y0
+             G0 Z-#7
+             G1 @#<raggio_apice_filetto> ^270 
+             G2 X#<_x> Y#<_y> I[- cos[270]*#<raggio_apice_filetto>] J[- sin[270]*#<raggio_apice_filetto>] Z#<z_prof_finale> P#<giri_elicoide>              
+             (MSG, esecuzione uno dei tre filetti interni)
+       o112 endif  ; fine routine filettatura dx
+       
+;o111 elseif ; inizio routine filettatura sinistra
+ (MSG, esecuzione filettatura interna sinistra)
+
+
+; DA INSERIRE CON G3 QUANDO FINITA QUESTA SOPRA
+
+;  o112 endif  ; fine routine filettatura sx
+;o111 endif ; fine routine filettatura dx e sx
+
+; torna a casa
+G0 X0 Y0
+G0 Z#<Z_sicura>
+(MSG, pezzo finito)
+o<testina_filettata> endsub
+
+

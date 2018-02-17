@@ -1,0 +1,52 @@
+(ngcgui: FEATURE 171208:22.05.27)
+(ngcgui: files: </usr/share/linuxcnc/ncfiles/ngcgui_lib/utilitysubs/mm_std.ngc /home/ottorino/Dropbox/mach3/subroutine/sub361funziona.ngc >)
+(ngcgui: feature line aggiunta) #<_feature:> = 0
+(ngcgui: preamble file: /usr/share/linuxcnc/ncfiles/ngcgui_lib/utilitysubs/mm_std.ngc)
+g17 (xy plane)
+g21 (mm)
+g40 (cancel cutter radius compensation)
+g49 (cancel tool lengthoffset)
+g90 (absolute distance mode)
+g94 (units/min feedrate)
+g54 (Coordinate system 1 default)
+#<tol>  = 0.001
+g64 p#<tol> (path control stop)
+
+F1000
+#<lunghezza_corazza> = 17.5 (= 17.5 lungh corazza)
+; coefficienti della cubica, ovvero del profilo della corazza 361
+#<intercetta_x> =  0 ; 1.2356236
+#<coef_x1>      =  0.5332291
+#<coef_x2>      = -0.0323905
+#<coef_x3>      =  0.0007024 
+
+; spirale
+;G0 X0 Y4.4 Z0
+;o100 repeat [1200]
+;g91 g1 @-.0015 ^5 z-.015
+;o100 endrepeat
+
+G0 X0 Y0
+
+#<z_attuale> = 0
+#<x_attuale> = 0
+#<x_sposta> = 0
+#<sposta> = 1
+#<fattore> = #<lunghezza_corazza> 
+#<raggio_attuale> = [#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3] 
+#<raggio_finale>= [#<intercetta_x> + #<coef_x1>*1.23 + #<coef_x2>*1.23**2 + #<coef_x3>*1.23**3] 
+   o101 do
+      G0 Z#<z_attuale> X#<x_attuale>
+      G2 X#<x_attuale> Y0 I#<raggio_attuale>
+      #<z_attuale> = [#<_z> - #<sposta>]
+      #<x_attuale> =  [#<x_attuale> + #<x_sposta>]
+      #<fattore> =    [#<fattore> -  #<sposta>] 
+      #<raggio_futuro> = [#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3]
+      #<x_sposta> = [#<raggio_attuale> - #<raggio_futuro>]
+      #<raggio_attuale> = [#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3]
+   o101 while [#<raggio_attuale> GT #<raggio_finale>]
+
+
+
+    (ngcgui: M2 ignorato dopo endsub: <M2>)
+(ngcgui: m2 aggiunta linea) m2 (g54 attivato)

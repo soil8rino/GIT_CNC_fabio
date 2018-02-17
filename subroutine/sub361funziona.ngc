@@ -1,0 +1,63 @@
+(info: corazza 361 piccola -- Ctrl-U modifica)
+o<sub361funziona> sub
+#<lunghezza_corazza> = #1 (= 17.5 lungh corazza)
+#<diam_barra>        = #2 (= 11.8 diam barra)
+#<asportazione_x>    = #3 (= 0.1 incremento X)
+#<diam_fresa>        = #4 (= 2 diametro fresino)
+#<facce>             = #5 (= 60 facce)
+#<vel_1o_taglio>     = #6 (= 10 vel. 1° taglio)
+#<vel_tagli_succ>    = #7 (= 200 vel. tagli succ)
+
+#<z_sicura> = [0.5*#2*1.15]; il " _ " davanti al nome la rende disponibile alle altre subroutinesù
+#<angolo>=[360/#5] ;angle to turn chuck
+; Si deve azzerare sul centro barra
+
+o100 repeat [#5] ; con 60 facce = un angolo di 6 gradi
+; coefficienti della cubica, ovvero del profilo della corazza 361
+#<intercetta_x> =  1.2356236
+#<coef_x1>      =  0.5332291
+#<coef_x2>      = -0.0323905
+#<coef_x3>      =  0.0007024 
+
+#<x_attuale> = 0
+      o101 do
+      F#7
+         o102 if [#<_a> EQ 0]
+              F#6
+         o102 endif  
+      ; G92 A0  ; azzera la coordinata  A forse da commentare
+      G1 X#<x_attuale> Z[#<intercetta_x> + #<coef_x1>*#<_x> + #<coef_x2>*#<_x>**2 + #<coef_x3>*#<_x>**3]
+      #<x_attuale> = [#<_x> + #3]
+      o101 while [#<x_attuale> LT #1]
+
+ ;G0 Z#<_z_sicura>
+ G0 X0 
+ G1 Z0  
+ G1 A[#<_a>+#<angolo>]  F[#7 * 10]
+o100 endrepeat
+;M0
+
+; PEZZO SPERIMENTALE PER SPIANATURA FORO
+G1 X0 Z-0.2106
+G1 X6.71 Z[#<intercetta_x> + #<coef_x1> * 6.71 + #<coef_x2> * 6.71**2 + #<coef_x3> * 6.71**3]
+G1 Y-[0.5 * #4] 
+G1 X0 Z-0.2106
+G1 Y[0.5 * #4]
+G1 X6.71 Z[#<intercetta_x> + #<coef_x1> * 6.71 + #<coef_x2> * 6.71**2 + #<coef_x3> * 6.71**3]
+g92 A0
+G0 Y0 Z#<z_sicura> A180
+
+; PEZZO SPERIMENTALE PER puntino OTTONE
+G0 X14.173
+G1 Z[[#<intercetta_x> + #<coef_x1> * #<_x> + #<coef_x2> * #<_x>**2 + #<coef_x3> * #<_x>**3]-0.1]
+
+; PEZZO SPERIMENTALE PER TRONCATURA POSTERIORE
+G0 Z#<z_sicura>
+G0 X[#<lunghezza_corazza> + #4] 
+G1 Z[#<intercetta_x> + #<coef_x1> * #1 + #<coef_x2> * #1**2 + #<coef_x3> * #1**3] F#6
+G1 Z0 A[360*15] F#6
+G0 Z#<z_sicura>
+
+o<sub361funziona> endsub
+
+M2

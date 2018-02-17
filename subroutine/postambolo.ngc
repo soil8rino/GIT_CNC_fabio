@@ -1,0 +1,5 @@
+(MSG, Pezzo finito)
+G92.1 ;azzera le coordinate relative all'uscita 
+ M5 M9 (M5 - stop the spindle. M9 - turn all coolant off. )
+ M2 (M2 - end the program. Pressing cycle start will start th)
+

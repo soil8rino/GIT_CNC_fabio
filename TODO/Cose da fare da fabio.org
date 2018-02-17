@@ -1,0 +1,77 @@
+#+STARTUP: hidestars
+#+STARTUP: content
+#+ARCHIVE: /mnt/D098970/org/archiviati/%s_archive::
+
+
+** altro
+*** Foto macchina per nello
+*** DONE riparazione Pelikan 100 e 120
+*** riparazione wahl
+*** DONE portare sacchetti
+
+
+** Hardware
+joypad
+
+
+**  installazioni
+*** DONE Gedit
+*** DONE mettere sintassi ngcode
+*** DONE icone per python
+*** DONE modificare configurazione macchina AXYZ e directory e subroutine
+*** DONE Esportare sua macchina tutta la directory, file mach3mill.stepconf
+*** DONE sudo dpkg-reconfigure locales
+*** DONE sudo apt-get install qalculate  
+*** DONE sudo apt-get install wicd
+*** DONE sudo apt-get install indicator-application
+*** DONE installa python 3.6.3
+*** DONE installa f-engrave e suo config
+*** DONE installa g-code-ripper e suo config
+*** DONE verificare e se il caso invertire direzione assi x e Y
+*** TODO verificare tipo e modello di driver di fabio
+
+*** DONE mappa i tasti per asse A metti file .axisrc in home/fabio
+https://forum.linuxcnc.org/38-general-linuxcnc-questions/29486-computer-total-freezes-only-during-jogging?start=10
+https://forum.linuxcnc.org/21-axis/14675-keyboard-re-mapping-key-binding
+http://thread.gmane.org/gmane.linux.distributions.emc.user/12638/focus=12642
+
+
+
+*** DONE verificare mm in assi xyz
+
+** Procedura da verificare
+1) home axes con la matita d'acciaio
+2) touch off di zeta sul bordo barra
+3) abbassare la zeta del valore del raggio della barra
+4) touch off di zeta di nuovo sul centro della barra
+5) far partire la routine di taglio sezione
+
+
+
+** Programmazione
+Scrivere una routine con lo spostamento relativo dell' asse zeta ma piu' semplice
+caricare la tool table coi giusti utensili
+
+*** DONE verifica come mai inverte la X e fai una macchina virtuale con icona che punta a dropbox
+TODO visualizza tornio in axis http://wiki.linuxcnc.org/cgi-bin/wiki.pl?BackToolLathe
+To display a rear tool lathe in Axis, add BACK_TOOL_LATHE = 1 to your DISPLAY section in the ini file. 
+
+
+archi
+https://forum.linuxcnc.org/forum/21-axis/1039-arc-center-mode-question
+
+** Idee
+A) routine di sgrossatura
+B) routine di rifinitura 
+   (non è detto che la barra meno il diametro minimo 
+    del pezzo siano divisibili perfettamente per lo 
+    spessore di asportazione)
+C) fare le sezioni a blocchi 
+   a) prima la coda, che è la piu' bassa
+   b) poi l'imboccatura 
+   c) poi il corpo con la tecnica dell'affondamento e rotazione
+
+
+
+
+

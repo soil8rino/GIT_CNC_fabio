@@ -1,0 +1,74 @@
+; QUESTO file è un lavoro in corso
+; Move to the machine origin.         MDI G53 G0 X0Y0Z0 (A0B0C0)
+; Clear the G92 coordinate offset.    MDI G92.1
+; Use the G54 coordinate system.      MDI G54
+; Set the G54 coordinate system to be identical to the machine  coordinate system. MDI G10 L2 P1 X0Y0Z0 (A0B0C0)
+; Turn off tool offsets.              MDI G49
+; G53 G0 X0Y0Z0A0
+G92.1 ; clear coordinate system in the preamble will prevent surprises.
+G54 ;The coordinate system desired should be specified in the preamble. Normally it is the G54 coordinate system
+G49 ; turns off tool length compensation.
+G40 ; turns off tool diameter compensation.
+
+G21 ; use mm for length units, G20 per i pollici
+G18 ; solo assi: XZ=18,  YZ=19 
+; M3 S3000 accendi la fresa a 3000 giri
+; http://gnipsel.com/linuxcnc/g-code/gen01.html
+G64 P0.001 M3 S3000
+; G19 - YZ (default) G64 Path Blending at 0.001
+G80 ;turns off canned cycles.
+; G90 ; absolute distance mode
+G94 ; Units per Minute is the mode used.
+
+; TODO da migliorare. se si inserisce si arrabbia
+#<_diam_fresa>= 2 ;mm
+;G41.1 D[#<_diam_fresa>] L0 ;(41.1 = left of programmed path)
+; esempio 
+;G42.1 D[#<_diam_fresa>] L0 (42.1 = right of programmed path)
+
+
+; Si deve azzerare sul centro barra
+; parametri della cubica, ovvero del profilo della corazza 361
+#<_lunghezza_corazza> = 20.5
+#<_diam_barra>= 11.8
+#<_asportazione_x> = 0.1
+#<_z_sicura> = [0.5*#<_diam_barra>*1.15]; il " _ " davanti al nome la rende disponibile alle altre subroutinesù
+#<diam_fresa>= 2
+#<_facce> = 60
+#<angolo>=[360/#<_facce>] ;angle to turn chuck
+
+o100 repeat [#<_facce>] ; con 60 facce = un angolo di 6 gradi
+; coefficienti della cubica, ovvero del profilo della corazza 361
+#<intercetta_x> =  1.2356236
+#<coef_x1>      =  0.5332291
+#<coef_x2>      = -0.0323905
+#<coef_x3>      =  0.0007024 
+
+#<x_attuale> = 0
+      o101 do
+      F200
+         o102 if [#<_a> EQ 0]
+              F10
+         o102 endif  
+;      G92 A0  ; azzera la coordinata Z e A
+      G1 X#<x_attuale> Z[#<intercetta_x> + #<coef_x1>*#<_x> + #<coef_x2>*#<_x>**2 + #<coef_x3>*#<_x>**3]
+      #<x_attuale> = [#<_x> + #<_asportazione_x>]
+      o101 while [#<x_attuale> LT #<_lunghezza_corazza>]
+
+ ;G0 Z#<_z_sicura>
+ G0 X0 
+ G0 Z0  
+ G1 A[#<_a>+#<angolo>] F1000  
+o100 endrepeat
+M0
+g0 Z#<_z_sicura>
+g0 X[#<_lunghezza_corazza> + #<diam_fresa>]
+g1 Z[[#<_diam_barra>/2]-0.3]
+g1 A360 F1000
+G0 Z#<_z_sicura>
+g0 X0
+(MSG, Pezzo finito)
+G92.1 ;azzera le coordinate relative all'uscita 
+ M5 M9 (M5 - stop the spindle. M9 - turn all coolant off. )
+ M2 (M2 - end the program. Pressing cycle start will start th)
+

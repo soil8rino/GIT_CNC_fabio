@@ -1,0 +1,47 @@
+(info: asporta materiale laterale a una barra -- Ctrl-U modifica)
+
+o<tornisci> sub
+#<diam_fresa>       =  #1 (= 0.5 diam. fresa) 
+#<coord_x1>         =  #2 (= 10.00 1a x, fresa a sx)
+#<coord_x2>         =  #3 (= 14.00 2a x, fresa a sx)
+
+#<prof_asportaz>    =  #4 (= 0.2 una asprtz su X e Z)
+#<diam_inizio>      =  #5 (= 12.5 diam barra)
+#<vel_F>            =  #6 (= 1000 vel mandrino)
+#<diam_voluto>      =  #7 (= 8.5 diam voluto)
+
+
+#<prof_taglio>           = [0.5 * [#5 - #7]]
+#<z_finale>              = [0.5 * #5 - #<prof_taglio>]
+#<lunghezza_asportaz>    = [ABS[#3 - #2]]
+#<giri_da_fare>          = [FIX[#<z_finale> / #4]]
+#<gradi_finali_affondo>  = [#<giri_da_fare> * 360]
+#<gradi_finali_asportaz> = [[#<lunghezza_asportaz> / #<prof_asportaz>] * 360]
+
+;subroutines di controllo inserimento dati opportuni
+o100 if [#<prof_asportaz> GT #<prof_taglio>]
+(MSG, RICHIESTA IMPOSSIBILE !! Profondità di asportazione per singolo passaggio maggiore di quella di taglio finale)
+M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o100 elseif [#<lunghezza_asportaz> LT #1] ; manca lo spazio per asportare
+(MSG, spazio tra le due coordinate x insufficiente per il diametro della fresa. Necessari o fresa più piccola o spazio più grande)
+M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o100 endif 
+
+G91
+G0 X[#2 + #1]                                 ; si sposta al punto x1 di tornitura
+G1 Z#<z_finale> A#<gradi_finali_affondo> F#6  ; affonda fino alla prof richiesta
+; G1 A[#<gradi_finali_affondo> + 360]      F#6  ; + 360 per fare un giro completo di rifinitura
+G92 A0                                        ; azzera i gradi di rotazione
+
+o150 if [#<lunghezza_asportaz> EQ 0]    ; se x1 e x2 sono uguali fermati dopo fatto il taglio
+(MSG, eseguita asportazione)
+M2
+o150 elseif [#<lunghezza_asportaz> GT #1] ; se non è solo affonda, prosegue asportazione verso X2
+
+G1 X[#3+#1] A#<gradi_finali_asportaz> F#6 
+G1 A[#<gradi_finali_asportaz>+360]    F#6
+
+o150 endif
+
+o<tornisci> endsub
+M2

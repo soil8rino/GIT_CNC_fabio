@@ -1,0 +1,122 @@
+(cappuccio OMAS LADY CELLULOIDE, AGGIORNAMENTO 2018)
+
+ G21 G17 G54 G40 G49 G80  
+(G00=massima rapidita', 21=in mm, 19=piano YZ   17=piano XYZ                   )
+(90=modo distanza assoluta, 40=Compensation Off                                )
+(49=cancels tool length compensation, 80=Cancel Canned Cycle                   )
+(71=sconosciuto, 91.1=Arc Distance Mode                                        )
+
+#<z_asportaz_unitaria>    = 0.2   (= 0.2 asportazione unitaria z)
+#<n_facce>                = 4    (= 12 n° di facce)
+#<diam_magg_cono>         = 12.4  (= 12.4 diam maggiore cono)
+#<diam_mino_cono>         = 10.75 (= 10.75  diam minore cono)
+#<cateto_magg>            = 12.78 (= 12.78 lungh pezzo)
+#<Veloc_F>                = 400   (= 400 velocita) 
+#<y_oscillaz>             = 1     (= 2 oscill Y)
+#<cateto_min_apice>       = 1.5     (= 2 mm apice oltre lungh pezzo) 
+
+
+(___________ variabili calcolate __________) 
+#<z_asportaz_unitaria> = -#<z_asportaz_unitaria>
+#<ang_rot_singola>     = [360/#<n_facce>]  ; angolo di una sola faccia, di rotazione
+#<raggio_magg>         = [0.5 * #<diam_magg_cono>] ; raggio maggiore
+#<raggio_mino>         = [0.5 * #<diam_mino_cono>] ; raggio minore
+#<cateto_mino>         = [#<raggio_magg>-#<raggio_mino>] ;cateto minore della parte da asportare
+#<n_asportazioni>      = FIX[[#<cateto_mino>/ABS[#<z_asportaz_unitaria>]]] ; FIX arrotonda all'intero inferiore
+
+
+
+o<oscillaz_y> sub ; [spost tot x] [asportaz unitaria Z] [oscillazione y] [asportazione totale Z]
+#<n_avanzamenti_x> = ABS[#1/#2] ; deve essere sempre positivo
+  o100 repeat[#<n_avanzamenti_x>]
+     G91
+     G1 Y-#3 X[#1/#<n_avanzamenti_x>] Z-[#4/#<n_avanzamenti_x>]
+     G1 Y#3 
+   o100 endrepeat
+G90
+o<oscillaz_y> endsub
+
+F#<Veloc_F> 
+
+
+; ###############################
+; INIZIO ASPORTAZIONE APICE
+; ###############################
+#<x_increm>=[#<cateto_min_apice>/#<n_asportazioni>] ;ics incrementale 
+#<z_asportaz_attuale> = #<z_asportaz_unitaria>        
+o<apice> repeat [#<n_asportazioni>]
+         o100 repeat [#<n_facce>] 
+G90
+         G1 X0 Z-#<raggio_magg> ; QUI C'E' QUALCOSA CHE NON VA PER IL RAGGIO. ROBA DEL G90 ?
+         G1 X#<x_increm> Z0
+         ; o<oscillaz_y> call [#<x_increm>] [#<z_asportaz_unitaria>] [#<y_oscillaz>] [#<z_asportaz_attuale>]
+         ; TODO il sopra ancora non funziona
+         G91 ; qui serve lo spostamento relativo
+         G0 X0 A#<ang_rot_singola> F1000 (ruota l'asse A di #<ang_rot_singola> gradi)
+         G90 ; si ripristina le coordinate assolute
+         o100 endrepeat     
+#<x_increm>=[#<x_increm>+[#<cateto_min_apice>/#<n_asportazioni>]] (ics incrementale)    
+#<z_asportaz_attuale> = [#<z_asportaz_attuale> + #<z_asportaz_unitaria>]    
+G0 X0 Z0 F#<Veloc_F> 
+o<apice> endrepeat 
+
+o<fine_apice> repeat [#<n_facce>] 
+         G1 X0 Z-#<diam_magg_cono>
+         G1 X#<cateto_min_apice> Z0
+         G91 ; qui serve lo spostamento relativo
+         G0 X0 A#<ang_rot_singola> F1000 (ruota l'asse A di #<ang_rot_singola> gradi)
+         G90 ; si ripristina le coordinate assolute
+o<fine_apice> endrepeat  
+
+
+; ###############################
+; INIZIO ASPORTAZIONE MANTELLO
+; ###############################
+#<x_increm>=[#<cateto_magg>/#<n_asportazioni>] (valore della ics incrementale)
+#<z_asportaz_attuale> = #<z_asportaz_unitaria>
+ 
+G0 X#<cateto_min_apice> Z0
+
+
+
+
+
+(ROUTINE PASSAGGIO CON ROTAZIONE)
+
+(programma vero e proprio. taglia una fetta spessa #<z_asportaz_unitaria>per #<n_facce> facce)
+(poi)
+(abbassa la zeta di una ulteriore fetta di spessore #<z_asportaz>)
+(poi)
+(taglia una fetta spessa #<z_asportaz_unitaria>per #<n_facce> facce ....)
+( e ripete il ciclo per #<n_asportazioni> spessori)
+
+o<principale> repeat [#<n_asportazioni>]
+     o800 repeat [#<n_facce>] (passa una faccia con tre valori X da #7 mmm e ruota l'asse di #20 gradi)
+          G1 X#<cateto_min_apice> Z#<z_asportaz_attuale> F#<Veloc_F> 
+          ;G1 X#<x_increm> Z0 
+          o<oscillaz_y> call [#<x_increm>] [#<z_asportaz_unitaria>] [#<y_oscillaz>] [#<z_asportaz_attuale>]
+          G1 X#<cateto_min_apice> Z#<z_asportaz_attuale> (torna a capo senza abbassare la Z )
+          G91 ; qui serve lo spostamento relativo
+          G0 A#<ang_rot_singola> F1000 (ruota l'asse A di #<ang_rot_singola> gradi)
+          G90 ; si ripristina le coordinate assolute
+     o800 endrepeat
+
+     (aumenta/ diminuisce il solo valore di Z)
+     (passa a vecchia O700, che abbassa/alza la Z)
+     #<x_increm>=[#<x_increm>+[#<cateto_magg>/#<n_asportazioni>]] (ics incrementale)
+     #<z_asportaz_attuale> = [#<z_asportaz_attuale> + #<z_asportaz_unitaria>]
+      G0 X#<cateto_min_apice> Z0 F#<Veloc_F> 
+     (98P2001L[#<n_facce>] routine rifinitura a misura precisa pezzo)
+o<principale> endrepeat 
+
+(MSG, rifinitura a misura precisa pezzo)
+o900 repeat [#<n_facce>] 
+     G1 X#<cateto_min_apice> Z0 (dal punto finale della misura del cono piccolo fa le facce fino a z zero #<n_facce> volte) ;G90
+     G1 Z-#<cateto_mino> ;
+     G1 X#<cateto_magg> Z0 F#<Veloc_F> (prima striscia) ;G90
+     ;o<oscillaz_y> call [#<cateto_magg>] [#<z_asportaz_unitaria>] [#<y_oscillaz>] [#<cateto_mino>]
+     G0 X#<cateto_min_apice> 
+     G0 A#<ang_rot_singola> F1000 (ruota l'asse A di #<ang_rot_singola> gradi)    
+o900 endrepeat
+
+M2

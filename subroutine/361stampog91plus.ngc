@@ -1,0 +1,85 @@
+(info: stampo corazza 361 piccola -- Ctrl-U modifica)
+o<361stampog91plus> sub
+
+
+#<diam_fresa>        = #1 (= 2.00 diam fresa)
+#<lungh_fresa>       = #2 (= 20.00 lungh fresa)
+#<velocita>          = #3 (= 1 velocita)
+#<z_incr>            = #4 (= 0.250 asportaz Z)
+#<dist_fori>         = #5 (= 15.00 distanza tra fori)
+#<n_fori>            = #6 (= 2 numero di pezzi)
+#<offset_x>          = #7 (= 8.1 x +dx -sx del bordo pezzo)
+#<lunghezza_corazza> = #8 (= 17.5 lungh corazza)
+
+
+#<raggio_fresa>    = [0.5 * #1]
+
+; coefficienti della cubica, ovvero del profilo della corazza 361
+#<intercetta_x> =  1.2356236 
+#<coef_x1>      =  0.5332291
+#<coef_x2>      = -0.0323905
+#<coef_x3>      =  0.0007024 
+
+; controlli. messi qui impediscono danni
+o10 if [#2 LT #8]; fermati e avverti
+ (MSG, Fresa troppo corta per il lavoro ! )
+ M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o10 endif
+
+o11 if [#<raggio_fresa> GT #<intercetta_x>]; fermati e avverti
+ (MSG, diametro fresa troppo grande per il lavoro ! )
+ M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o11 endif
+
+#<raggio_attuale_int> = [[#<intercetta_x> + #<coef_x1>*#8 + #<coef_x2>*#8**2 + #<coef_x3>*#8**3] -#<raggio_fresa> ]
+
+o12 if [#<raggio_attuale_int> GT [#7-3]] ;fori almeno 4 mm dal bordo
+ (MSG, fori  troppo vicini al bordo stampo!! )
+ M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o12 endif
+
+G0 X[-#7+#<raggio_attuale_int>]  
+G91 ; coordinate incrementali PER I FORI CENTRALI PROFONDI
+F[#<velocita>*50]
+; ############ pezzo foratura
+
+; sotto. Fora tutto il pezzo centralmente
+G98 G83 X0 Y#5 Z-[#8+2] R1 L#6 Q[[#8+2]/5] ; y#5 increm, Z = prof finale, R = altezza estrazione, Q affondo ogni volta
+F[#<velocita>*250] 
+
+#<conta> = [#6] ; contatore dei pezzi da fare
+ o100 do
+; PARAMETRI DEL PEZZO
+ #<x_incr> = 0
+ #<fattore> = #<lunghezza_corazza> 
+ #<apice> = #<intercetta_x> ; serve per bloccare la spirale discendente
+ #<raggio_attuale_int> = [[#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3] - #<raggio_fresa> ]
+ #<raggio_finale>  = [[#<intercetta_x> + #<coef_x1>*#<apice> + #<coef_x2>*#<apice>**2 + #<coef_x3>*#<apice>**3] - #<raggio_fresa> ]
+
+
+G90 ; coordinate assolute necessarie per centrare il cerchio della parte a profilo cubico
+G0 X-#7  Y[#5*#<conta>] Z1
+G0 Z0 ; questa z0 serve perche' esce dal g98g83 piu' alto. si torna verso l'inizio
+
+G91 ; coordinate incrementali PER LE SPIRALI CONICHE
+   o102 do
+      G1 X#<x_incr> 
+      G2 Y0 Z-#4 I#<raggio_attuale_int>
+(DEBUG, r = #<raggio_attuale_int> fine= #<raggio_finale> prof = #<_z>)
+      #<fattore> =    [#<fattore> - #4] 
+      #<raggio_futuro> = [[#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3]-#<raggio_fresa> ]
+      #<x_incr> = [#<raggio_attuale_int> - #<raggio_futuro>]
+      #<raggio_attuale_int> = [[#<intercetta_x> + #<coef_x1>*#<fattore> + #<coef_x2>*#<fattore>**2 + #<coef_x3>*#<fattore>**3]-#<raggio_fresa> ]
+   o102 while [#<raggio_attuale_int> GT #<apice>] ;[#<_z> GT -#8+2] ; +2 ovvero rattoppo da rivedere
+ #<conta> = [ #<conta> - 1]
+G90 ; coordinate assolute
+G0 Z1 
+o100 while [#<conta> GT 0]
+
+G90 ; torna a casa
+G0 X0 Y0 
+G0 Z0
+(MSG, stampo 361 finito)
+o<361stampog91plus> endsub
+
+

@@ -1,0 +1,12 @@
+; programma azzeramento macchina
+; Move to the machine origin.         
+G53 G0 X0 Y0 Z0 A0 
+; Clear the G92 coordinate offset.    
+G92.1
+; Use the G54 coordinate system.      
+G54
+; Set the G54 coordinate system to be identical to the machine  coordinate system. 
+G10 L2 P1 X0 Y0 Z0 A0 
+; Turn off tool offsets.              
+G49
+M2

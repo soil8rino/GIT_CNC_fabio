@@ -1,0 +1,13 @@
+
+#1=0 (PARTENZA PUNTO A)
+#2=4 (VARIABILE IN GRADI)
+g90 x0 y0 z4 a-1 f500
+M98P500L80
+O500
+g90 z0
+g90 y6
+g90 z1
+g90 y0
+#3=[#3+#2]
+g98 A[#3]
+M99

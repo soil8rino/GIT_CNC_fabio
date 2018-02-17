@@ -1,0 +1,38 @@
+
+(cappuccio OMAS GENTLEMAN SFACCETTATO, per ora a dodici facce NON conico)
+
+#1=-0.100    (incremento+ decremento- di z)
+#2=12       (numero di facce)
+#3=1.150    (DIFFERENZA TRA CONO MINORE E MAGGIORE, non usata per adesso)
+#4=7.100    (Z DI PARTENZA DA PRIMA PASSATA)
+#5=0.000    (Z VARIABILE DEL RITORNO A ZERO DOPO LA Y0, non usata per adesso)
+#6=15.000   (MISURA CORSA LUNGHEZZA CAPPUCCIO)
+#7=1
+
+#20= [360/#2] (angolo di una sola faccia)
+#30=7.1
+(valori di partenza)
+G1 A0 X0 Y0 Z0 F500
+G1 Z7.1
+
+           (ROUTINE PASSAGGIO CON ROTAZIONE)
+M98P800L[#2] 
+M30
+
+(passa una faccia con tre valori X da #7 mmm e ruota l'asse di #20 gradi)
+O800
+G1 X[-#7] Y[#6] Z[#30] (prima striscia)
+G1 Y0 X0 (torna a capo senza abbassare la Z)
+G1 X0 Y[#6] Z[#30] (seconda striscia)
+G1 Y0 X0 (torna a capo senza abbassare la Z)
+G1 X[#7] Y[#6] Z[#30] (terza striscia)
+G1 Y0 X0 (torna a capo senza abbassare la Z)
+(i passi sopra sono una routine scritta per esteso)
+G91 A[#20] (ruota l'asse A di #20 gradi)
+M98P700L1 (passa a O700, che abbassa/alza la Z)
+M99
+
+(aumenta/ diminuisce il solo valore di Z)
+O700 
+#30=[#30+#1]
+M99

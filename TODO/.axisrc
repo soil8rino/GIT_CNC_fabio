@@ -1,0 +1,14 @@
+# Bind frecciasu 0xff52 and frecciagiu 0xff54 to jog asse Y
+root_window.bind("<0xff52>", lambda e: jog_on(1, -get_jog_speed(1)))
+root_window.bind("<0xff54>", lambda e: jog_on(1, get_jog_speed(1)))
+root_window.bind("<KeyRelease-0xff52>", lambda e: jog_off(1))
+root_window.bind("<KeyRelease-0xff54>", lambda e: jog_off(1))
+
+
+
+# Bind Ins and Canc to jog axis 3 (0=X, 1=Y, 2=Z, 3=A, 4=B, ...)
+root_window.bind("<0xffff>", lambda e: jog_on(3, -get_jog_speed(3)))
+root_window.bind("<0xff63>", lambda e: jog_on(3, get_jog_speed(3)))
+root_window.bind("<KeyRelease-0xffff>", lambda e: jog_off(3))
+root_window.bind("<KeyRelease-0xff63>", lambda e: jog_off(3))
+

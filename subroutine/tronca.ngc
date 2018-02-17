@@ -1,0 +1,20 @@
+(info: asporta materiale sulla faccia di una barra -- Ctrl-U modifica)
+
+o<tronca> sub
+#<diam_fresa>       =  #1 (= 2 diam. fresa) 
+#<coord_x1>         =  #2 (= 10.00 1a x, fresa a sx)
+#<diam_inizio>      =  #3 (= 12.5 diam barra)
+#<prof_asportaz>    =  #4 (= 0.2 una asprtz su Z)
+#<vel_F>            =  #5 (= 1000 vel mandrino)
+
+#<giri_da_fare>  = [0.5 * #3 / #4]
+#<gradi_finali>  = [#<giri_da_fare> * 360]
+
+
+G0 X[#2 + #1]                   ; si sposta al punto di troncatura
+G1 Z0 A#<gradi_finali>     F#5  ; tronca
+G1 A[#<gradi_finali> + 360] F#5  ; + 360 per fare un giro completo di rifinitura
+G92 A0                          ; azzera i gradi di rotazione
+
+o<tronca> endsub
+M2

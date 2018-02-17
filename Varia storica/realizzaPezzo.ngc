@@ -1,0 +1,24 @@
+G00G21G19G90G40G49G80G71G91.1
+(00=massima rapidita', 21=in mm, 19=piano YZ                                   )
+(90=modo distanza assoluta, 40=Compensation Off                                )
+(49=cancels tool length compensation, 80=Cancel Canned Cycle                   )
+(71=sconosciuto, 91.1=Arc Distance Mode  
+(_____________ MISURE PEZZO DA REALIZZARE _____________________________________)
+(http://linuxcnc.org/docs/html/gcode/overview.html#gcode:messages )
+(capoverso 23. G Code Best Practices, usare 3 decimali)
+#100=9.000    (diametro barra cilindrica, FF')
+
+#201=360     (gradi di un giro completo o parziale)
+#202=6       (gradi di spostamento per ogni ciclo)
+#203=-0.100  (incremento+ decremento- asse z ad ogni ciclo)
+
+#1204=[#201/#202]               (n passi per completare rotazione, asse A)
+#1205=[#1104/ABS[#203]]         (n passi per percorrere AB, asse Z)
+
+
+ A0 Y0 Z[#100/2] F[#204] (Posiziona inizialmente l'utensile sul bordo barra, in G)
+M98 (profilo.ngc)L[#1205]    (esegui subroutine profilo, taglia cono, #1205 volte)
+M98 (affondaProfilo.ngc)
+M98 (rotazione360.ngc)
+
+M30                 (finisce il programma)

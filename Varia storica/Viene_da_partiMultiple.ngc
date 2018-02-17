@@ -1,0 +1,69 @@
+#<_numero_di_facce>=1
+#<_gradi_rotazione>=[360/#<_numero_di_facce>](angle to turn chuck)
+#<_diam_barra>=11.4
+#<_diam_max_finale>=10.8
+#<_diam_min_finale>=9.4
+#<_asportazione_unitaria>=0.1 ; 1/10 di mm
+#<_asportazione_totale>=[[#<_diam_barra>-#<_diam_min_finale>]/2]
+#<_n_affondamenti>=[#<_asportazione_totale>/#<_asportazione_unitaria>]
+#<_rifinitura>=[#<_asportazione_totale> MOD #<_asportazione_unitaria>]
+
+(; ##########################################)
+(; ROUTINE DI ROTAZIONE e TAGLIO INTORNO ad A)
+(; ##########################################)
+ o<_ruota_A> sub 
+ ;#9 = conteggio temporaneo angoli di rotazione
+ #9=0
+   o210 while [#9 LT 359.9]
+    ; esegui 210 mentre il conteggio temporaneo #9 è inferiore a 360 gradi
+ 
+ G0  X0 Z[-#1] A[#9];G0 X0 Z0 ; Sposta dove calcolato
+ G92 X0 Z0 A0; sposta l'origine degli assi al punto sopra calcolato
+ 
+o<profilomultiplo> call (chiama il file esterno di nome profilo)
+
+   #9=[#9+#<_gradi_rotazione>] ; gira il mandrino di n gradi
+(DEBUG, sagoma su  #9 °, profondità #11) 
+   o210 endwhile ; chiude la 210
+
+   G92.1 ; resetta l'origine degli assi, ovvero azzera gli angoli
+ o<_ruota_A> endsub
+
+(; #################################)
+(; ROUTINE DI AFFONDAMENTO  LUNGO Z)
+(; #################################)
+( o<_affonda_z> sub [#1])
+(         ; affonda la profondità di asportazione ogni 360 °)
+(   #1=[#1-#<_asportazione_unitaria>])
+( o<_affonda_z> endsub)
+
+
+; ############################
+; ROUTINE PRINCIPALE
+; ############################
+ o<_esegui_pezzo> sub ; squares [x0] [z0] [NA] [dy] [NA] [zcount] [zd] [zr] [f1] [f2]
+ 
+ ;o<_ruota_A> call
+; #11 = temporary for count of depths)
+ 
+ #11=0
+  o410 while [#11 LE #<_n_affondamenti>] ; esegui mentre il conteggio prof #11 è inferiore o uguale a #6, numero di righe volute
+   #1=[#1+#<_asportazione_unitaria>] ; affonda zeta
+           o<_ruota_A> call [#1]
+     #11=[#11+1] ; aumenta di 1 il conteggio prof fatte
+(DEBUG, profondità #11, #1) 
+  o410 endwhile
+ o<_esegui_pezzo> endsub
+
+; #########################################################
+; esecuzione della routine di taglio coi parametri definiti
+; nelle routines sopra
+; #########################################################
+
+F300
+G18 ; G19 - solo assi XZ 
+; G92.1 ; azzera gli assi sul punto dove si trova l'utensile
+G21 ; in mm
+M3 S1000 ; avvia l'utensile a 1000 giri
+o<_esegui_pezzo> call [0]
+M2

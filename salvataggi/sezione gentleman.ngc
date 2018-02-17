@@ -1,0 +1,93 @@
+; QUESTO FUNZIONA MA FA UN PEZZO PICCOLO
+; Move to the machine origin.         MDI G53 G0 X0Y0Z0 (A0B0C0)
+; Clear the G92 coordinate offset.    MDI G92.1
+; Use the G54 coordinate system.      MDI G54
+; Set the G54 coordinate system to be identical to the machine  coordinate system. MDI G10 L2 P1 X0Y0Z0 (A0B0C0)
+; Turn off tool offsets.              MDI G49
+; G53 G0 X0Y0Z0A0
+G92.1 ; clear coordinate system in the preamble will prevent surprises.
+G54 ;The coordinate system desired should be specified in the preamble. Normally it is the G54 coordinate system
+G49 ; turns off tool length compensation.
+G40 ; turns off tool diameter compensation.
+
+G21 ; use mm for length units, G20 per i pollici
+G18 ; solo assi: XZ=18,  YZ=19 
+; M3 S3000 accendi la fresa a 3000 giri
+; http://gnipsel.com/linuxcnc/g-code/gen01.html
+G64 P0.001 M3 S3000
+; G19 - YZ (default) G64 Path Blending at 0.001
+G80 ;turns off canned cycles.
+; G90 ; absolute distance mode
+G94 ; Units per Minute is the mode used.
+
+; TODO da migliorare. se si inserisce si arrabbia
+;#<_diam_fresa>= 2 ;mm
+;G41.1 D[#<_diam_fresa>] L0 ;(left of programmed path)
+; esempio G42.1 D- <L-> (right of programmed path)
+
+
+; il diametro max della sezione gentleman è di 10.8 mm
+#<_diam_barra>=11;[12.50-0.2*3]
+#<_diam_max_finale>=10.8
+#<_diam_min_finale>=9.300
+#<_asportazione_unitaria>=0.2 ; 1/10 di mm
+; TODO con 0.4 mm risultano 1.125 fette. Impossibile: quindi fare sgrossatura e finitura
+; TODO Funzionalizzare tutta la procedura con i parametri [barra] [diamMax] etc in una subroutine generale come si
+; vede nell'esempio quadrati multipli nel file Vienedapartimultiple.ngc
+#<_asportazione_totale>=[[#<_diam_barra>-#<_diam_min_finale>]/2]
+#<_fetta>=1
+#<_fattore>=[#<_asportazione_totale>+#<_asportazione_unitaria>*#<_fetta>]
+#<_n_fette>=[#<_asportazione_totale>/#<_asportazione_unitaria>]
+#<_x_inizio_coda_filettata>= [13.400+0.2] ; dal file del profilo + un certo valore
+#<_z_inizio_coda_filettata>=  [9.300/2] ; dal file del profilo
+; conviene azzerare sul centro barra
+
+; inserito un controllo di verifica dimensioni corrette. 
+; Che succede se metto 2.0 come asportaz unitaria ? Da complicare a piacere
+o101 if [#<_asportazione_unitaria> gt 0.4] ; fermati e avverti se asporti piu' di 0.4 mm
+(DEBUG, E ttu rompi i' ffresino, capocchione! Asportazione max permessa 4/10 mm)
+M30
+o101 endif
+
+F500.00 ; velocità di spostamento generale
+
+
+#1=60 (number of faces)
+#2=[360/#1](angle to turn chuck)
+#6=0
+o<affondazeta> do
+   o<giramandrino> do (do ....... while e un loop implicito o200 e il nome della subroutine) 
+           (DEBUG, l'angolo a #6, asportaz n #<_fetta> di  #<_n_fette>) 
+           o<profilo_con_arco> call (chiama il file esterno di nome profilo, nomi in minuscolo sempre)
+	   #6=[#6+#2]
+	   G0 A#6
+ o<giramandrino> while[#6 lt 359.9] (mentre #6 minore di 359.9 gradi)
+#6=0
+#<_fetta>=[#<_fetta>+1]
+G92 A0 ;Azzera i gradi di rotaziona del mandrino G0 A0 invece lo riavvolge
+o<affondazeta> while[#<_asportazione_unitaria>*#<_fetta> lt #<_asportazione_totale>]
+
+; inizio filettatura
+(G0 X#<_x_inizio_coda_filettata> Z#<_z_inizio_coda_filettata>)
+(G7 ; G7 modo tornio diametro, G8 modo tornio raggio)
+(;  passo, lunghezza,    filett_ext, prof iniz, area, prof final=P, ??,  passate finitura, lung conicità, no conicità )
+G0 Z4
+G92 X0 Z0 A0
+o<subroutine_filetta> call [2] [0.7] [20-13.5] [0.7*0.5*SQRT[3]/10] [0] [30] [15] [1]
+; G76 P[0.7] Z[20.000-13.440] I-0.001    J0.1     R2.0    K0.2        Q0         H2         E0            L0
+
+
+
+;G0 Z6.350 X 20.000
+;G1 Z[9.3/2]
+(G0 Z6.350)
+(G0 X0Y0Z0A0)
+
+; segno di troncatura del pezzo
+; G7 ; G7 modo tornio diametro, G8 modo tornio raggio
+; G0 Z
+
+
+ M5 M9 (M5 - stop the spindle. M9 - turn all coolant off. )
+ M2 (M2 - end the program. Pressing cycle start will start th)
+

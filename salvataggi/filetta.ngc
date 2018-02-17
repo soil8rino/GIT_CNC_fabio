@@ -1,0 +1,104 @@
+; QUESTO FUNZIONA IN VIRTUALE
+; Move to the machine origin.         MDI G53 G0 X0Y0Z0A0 (B0C0)
+; Clear the G92 coordinate offset.    MDI G92.1
+; Use the G54 coordinate system.      MDI G54
+; Set the G54 coordinate system to be identical to the machine  coordinate system. MDI G10 L2 P1 X0Y0Z0A0 (B0C0)
+; Turn off tool offsets.              MDI G49
+; G53 G0 X0Y0Z0A0
+G92.1 ; clear coordinate system in the preamble will prevent surprises.
+G54 ;The coordinate system desired should be specified in the preamble. Normally it is the G54 coordinate system
+G49 ; turns off tool length compensation.
+G40 ; turns off tool diameter compensation.
+
+G21 ; use mm for length units, G20 per i pollici
+G18 ; solo assi: XZ=18,  YZ=19 
+; M3 S3000 accendi la fresa a 3000 giri
+; http://gnipsel.com/linuxcnc/g-code/gen01.html
+G64 P0.001 M3 S3000
+;  G64 Path Blending at 0.001
+G80 ;turns off canned cycles.
+; G90 ; absolute distance mode
+G94 ; Units per Minute is the mode used.
+;F300 ; mettere sempre un F altrimenti da errore da avanzamento nullo
+
+
+o<_un_filetto> sub
+ ; parametri calcolati. Non servono all'utente
+ ; questi sotto sono locali per subroutine "un_filetto"
+ #<prof_filetto>= [0.5*#2*SQRT[3]]; l/2 * radice di tre ; 0.60621778 per 0.7 passo sqrt3 = 1.73
+ #<passo_reale>=[#2*#1]
+ #<gradi_finali>= [-1*#8*360*#3/#<passo_reale>]
+ #<n_passaggi>=  [FIX[#<prof_filetto>/#4]] ; viene 6.06 passaggi per 0.7 di passo
+ #<prof_affinatura>= [#<prof_filetto>/#4-#<n_passaggi>]; dovrebbe essere 0.06
+  ; asportazione in un solo senso. Assume fresa vicino al mandrino tornio
+      (MSG, Fase di sgrossatura)
+    o101 repeat [#<n_passaggi>] ; esegue routine per un numero intero di passaggi
+      F#6
+      G92 Z0 ; azzera la coordinata Z
+      G1 Z-#4 ; abbassa la zeta di un tot
+      G1 X-#3 A#<gradi_finali> ; effettua un filetto
+      ;G92 Z0 ; eventuale passo di abbassamento zeta
+      G0 X0 A0 ; torna indietro max velocita per la stessa strada del passo sopra
+    o101 endrepeat
+    ; da qui in poi esegue il passaggio rimanente. Il resto della  divisione
+    o102 if [#<prof_affinatura> GT 0]
+      (MSG, Ultima fase di asportazione a profondità richiesta esatta) 
+      G92 Z0
+      G1 Z-#<prof_affinatura>;  abbassa la zeta di quello che manca a raggiungere la gola della filettatura
+      G1 X-#3 A#<gradi_finali> ; effettua l'asportazione finale
+      G0 X0 A0  ; torna indietro max velocita per la stessa strada del passo sopra
+    o102 endif
+
+    o103 if [#5 GT 0]
+       (MSG, Fase di rifinitura) 
+     o104  repeat [#5]
+      F#7
+      G1 X-#3 A#<gradi_finali> ; procede nello stesso solco dell'asportazione finale
+      G1 X0 A0 ; torna indietro per la stessa strada del passo sopra
+     o104 endrepeat
+    o103 endif
+    G0 Z[#<n_passaggi>*#4+#<prof_affinatura>]; riporta la fresa al punto iniziale
+o<_un_filetto> endsub
+
+
+o<_filetta> sub 
+(DEBUG, #1 principi, #2 passo, #3, lunghezza,  #4 prof asportazione, #5 passaggi rifinitura, #6 vel sgrossatura, #7 vel rifinitura)
+(MSG, Premi il bottone "pausa" a video per continuare)
+M0 ; pausa per verificare che i numeri sopra vadano bene
+
+ o111 repeat [#1] ; #1 è il numero dei principi
+    o<_un_filetto> call [#1] [#2] [#3] [#4] [#5] [#6] [#7] [#8]
+; #<_n_passaggi> #<_prof_asportazione> #<_prof_affinatura> #<_lunghezza> #<_gradi_finali# <_n_passaggi_rifinitura
+      o112 if [#1 EQ 1]
+        G0 A0
+       o112 elseif [#1 EQ 2]
+        G0 A180
+       o112 elseif [#1 EQ 3]
+        G0 A120
+       o112 elseif [#1 EQ 4]
+        G0 A90
+       o112 else [#1 EQ 5]
+        G0 A72 
+      o112 endif
+    G92 A0  ; azzera l'angolo 
+ o111 endrepeat
+o<_filetta> endsub 
+
+
+o<_filetta> call [2] [0.700] [3.500] [0.6] [1] [30] [15] [1]
+; i parametri di filettatura sono i seguenti
+
+  ; #1 <_n_principi>= 2 ; da 1 a 5 principi per numeri interi
+  ; #2 <_passo>
+  ; #3 <_lunghezza>= [#<_passo>*5]
+  ; #4 <_prof_asportazione>= 0.6 ;[0.2*#<_prof_filetto>]
+  ; #5 <_n_passaggi_rifinitura>= 1 ; 1 effettua un ciclo avanti e indietro, ovvero 2 passaggi di rifinitura
+  ; #6 <_vel_sgrossatura>= 30
+  ; #7 <_vel_rifinitura>= 15; [#<_vel_sgrossatura>/2]  
+  ; #8 <_verso>= -1 sinistro, 1 destro
+
+G92.1 ;azzera le coordinate relative all'uscita
+(MSG, Pezzo finito)
+M5 M9 ;M5 - stop the spindle. M9 - turn all coolant off.
+M2 ;M2 - end the program.
+

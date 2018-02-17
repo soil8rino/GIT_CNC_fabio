@@ -1,0 +1,170 @@
+﻿( G______________________________E________H___________F             F          )
+(                                |        |                      E  |          )
+(                                |        |                      |  |          )
+(                                |        L^^^^^^^^^^M        L  |  |          )
+(  A.............................C                         C  |  |  |          )
+(  .                       .     |                         |  |  |  |          )
+(  .           .                 |                         |  |  |  |          )
+(  . .                           |                         |  |  |  |          )
+(  B                             |D                     B  |  |  |  |          )
+(  |                             |                      #  #  #  #  #          )
+(O |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _|O'_ _ _ _   asse      1  1  1  1  1          )
+(  |                             |          rotazione   0  0  0  0  0          )
+(  |                             |                      4  3  2  1  0          )
+(  B'                            |D'                    B' |  |  |  |          )
+(  . .                           |                         |  |  |  |          )
+(  .           .                 |                         |  |  |  |          )
+(  .                       .     |                         |  |  |  |          )
+(  A'............................C'                        C' |  |  |          )
+(                                |        L'^^^^^^^^^M'       L' |  |          )
+(                                |        |                      |  |          )
+(                                |        |                      E' |          )
+(  G'____________________________E'_______H'_________F'             F'         )
+
+(  A..........#105...............C                                             )
+(                                E..#106..H                                    )
+(                                         L...#107...M                         )
+
+
+(Si tratta di rimuovere le sezioni BGEC et HLMF dalla barra GFF'G'             )
+(Si opera solo sul piano YZ con rotazione A                                    )
+(Quindi: FF'=#100 EE'=#101 LL'=#102 CC'=#103 BB'=#104                          )
+(        AC =#105 EH =#106 LM =#107                                            )
+(A di coordinate y0 z[#105/2]                                                  )
+(C di coordinate yO' z[#103/2]                                                 )
+(NECESSARIO AZZERARE ASSE z e y SU ASSE ROTAZIONE al punto O !!!!              )
+
+G00G21G19G90G40G49G80G71G91.1
+(00=massima rapidita', 21=in mm, 19=piano YZ                                   )
+(90=modo distanza assoluta, 40=Compensation Off                                )
+(49=cancels tool length compensation, 80=Cancel Canned Cycle                   )
+(71=sconosciuto, 91.1=Arc Distance Mode                                        )
+
+
+(_____________ MISURE PEZZO DA REALIZZARE _____________________________________)
+(http://linuxcnc.org/docs/html/gcode/overview.html#gcode:messages )
+(capoverso 23. G Code Best Practices, usare 3 decimali)
+#100=9.000    (diametro barra cilindrica, FF')
+#101=8.000    (diametro collare, EE')
+#102=8.500    (diametro filettatura, LL')
+#103=6.950    (diametro posteriore puntale, CC')
+#104=3.550    (diametro punta puntale, BB')
+#105=14.480   (lunghezza parte conica puntale, cateto AC)
+#106=1.000    (lunghezza collare, EH)
+#107=12.000   (lunghezza coda filettata, LM)
+
+(_____________ PARAMETRI MACCHINA UTENSILE ____________________________________)
+(COSE DA FARE: considerare il diametro del fresino che non è puntiforme)
+(quindi nella rimozione dell parte inferiore bisogna inserire un offset)
+(Forse è G10 pag 144 manuale G10 A3 significa che la fresa ha diametro 3 ? )
+(oppure G40, G41 e G42 pag 149 manuale deve essere attivo assi XY)
+
+
+#201=360     (gradi di un giro completo o parziale)
+#202=6       (gradi di spostamento per ogni ciclo)
+#203=-0.100  (incremento+ decremento- asse z ad ogni ciclo)
+#204=50      (Velocita' di spostamento F)
+#205=1.000  (COSE DA FARE: #205 = diametro del fresino. Suo diametro ?)
+// G28 Y0 Z[#100/2] (A0 definisce "casa" il punto G, detto senza ironia)
+(G28 X~ Y~ Z~ A~ B~ C~ 0vvero variabili riservate da 5161 a 5166)
+
+(_____________ MISURE DERIVATE ________________________________________________)
+#1104=[#103/2-#104/2]           (cateto BA, positivo)
+#1105=[#1104/#105]              (rapporto cateti, piccolo/grande, BA/AC)
+
+(_____________ RIPETIZIONI NECESSARIE _________________________________________)
+(COSE DA FARE: arrotondare il n di passi a numero intero. ROUND pag 136)
+#1204=[#201/#202]               (n passi per completare rotazione, asse A)
+#1205=[#1104/ABS[#203]]         (n passi per percorrere AB, asse Z)
+#1206=[[#100-#102]/2/ABS[#203]] (n passi per percorrere HL, asse Y)
+
+
+(_____________ PARAMETRI DINAMICI MACCHINA UTENSILE, iniziali__________________)
+(#1 per la x)
+#2=[#105/#1205]   (POSIZIONE y per la prima diagonale di taglio, AC/n passi per percorrere AB)
+#3=[#100/2+#203]  (POSIZIONE z = FF'/2 +- decremento asse z)
+
+(_____________ PROGRAMMA VERO E PROPRIO  ______________________________________)
+(COSE DA FARE: chiudere la fresatura con un passaggio finale per portare a     )
+(misura il pezzo. Potrebbe succedere che i passaggi z non siano multipli esatti)
+(della misura finale. 10.7.17 Movimento nelle coordinate assolute – G53)
+(COSE IN PROVA: G30 dovrebbe essere il "torna a casa" G28 definisce casa)
+
+// G30 (torna a "casa", al punto G, A = zero gradi rotazione -forse ° inutili-)
+ A0 Y0 Z[#100/2] F[#204] (Posiziona inizialmente l'utensile sul bordo barra, in G)
+ M98P1700L[#1205]    (esegui subroutine O1700, taglia cono, #1205 volte)
+ #2=[#105+#106+#205/2] (azzeramento POSIZIONE y prima del taglio coda filettata)
+ #3=[#100/2+#203]    (azzeramento POSIZIONE z = FF'/2)
+ \\G30 (torna a "casa", al punto G, A = zero gradi rotazione -forse ° inutili-)
+ A0 Y0 Z[#100/2] F[#204] (Posiziona di nuovo l'utensile sul bordo barra, in G)
+ M98P1800L[#1206]    (esegui subroutine O1800, asporta dietro, #1206+1 volte )
+ (COSE DA FARE: scrivere routine filettatura)
+ (M98P1900L[#1205]    esegui subroutine O1900, filettatura)
+ (MSG, REALIZZAZIONE PUNTALE ESEGUITA)
+ M30                 (finisce il programma)
+
+ 
+(%%%%%%%%%%%%%%%%% taglia diagonale, ruota, ritorna %%%%%%%%%%%%%%%%%%%%%%%%%%%)
+ (effettua un passaggio diagonale)
+ (da)
+ (un punto intermedio tra G e B situato in alle coordinate Y0Z#3 )
+ (verso)
+ (un punto intermedio tra A e E, situato alle coordinate Y#2Z0)
+ (ruotando il pezzo ogni volta #202 gradi)
+O500 (pag 134 manuale Non deve apparire nulla tranne che un commento sulla stessa linea dopo un’etichetta di subroutine.)
+ G90 Y0 Z[#3]  F[#204]
+ G91 A[#202]  F1000 (rotazione mandrino di #202 gradi)
+ (MSG, Qui ci si possono mettere dei messaggi)
+ G90 Y[#2] Z[#3]  F[#204]
+ M99 (chiude O500 taglia diagonale ruota e ritorna)
+
+(%%%%%%%%%%%%%%%%%%% affonda profondita diagonale di taglio %%%%%%%%%%%%%%%%%%%)
+O600
+ (affonda la diagonale di asportazione della routine O500, cambiando #2 e #3)
+ #2=[#2+[#105/#1205]]   (spostamento asse y verso C per il taglio diagonale) 
+ #3=[#3+#203]           (spostamento asse z verso B per il taglio diagonale)
+ M99 (chiude O600 affonda profondita diagonale di taglio)
+
+(%%%%%%%%%%%%%%%%%%% affonda profondita dritta di taglio %%%%%%%%%%%%%%%%%%%%%%)
+O601
+ (affonda la profondita' di asportazione di O700, coda filettata, cambiando #2)
+ #3=[#3+#203]           (spostamento asse z verso B)
+ M99 (chiude O601 affonda profondita di taglio)
+
+(%%%%%%%%%%%%%%%%%%% asporta dietro fino a diametro MM' %%%%%%%%%%%%%%%%%%%%%%%)
+O700 
+ (effettua un passaggio rettilineo)
+ (dal )
+ (punto situato in alle coordinate L)
+ (verso)
+ (il punto situato alle coordinate M)
+ (ruotando il pezzo ogni volta #202 gradi per #1204 volte)
+ G90 Y[#105+#106] Z[#3]
+ G91 A[#202] F1000 (rotazione mandrino di #202 gradi)
+ G90 Y[#105+#106+#107] Z[#3] F[#204]
+ M99 (chiude O700 asporta dietro)
+ 
+(%%%%%%%%%%%%%%%%%%% taglia tutta la parte conica %%%%%%%%%%%%%%%%%%%%%%%%%%%%%)
+O1700
+ (effettua un passaggio diagonale)
+ (da )
+ (un punto intermedio tra A e B situato in alle coordinate Y0Z#3 )
+ (verso)
+ (un punto intermedio tra A e C, situato alle coordinate Y#2Z0)
+ (ruotando il pezzo ogni volta #202 gradi per #1204 volte)
+ (Infine cambia i parametri dinamici #2 e #3 della routine 0600)
+ (che affondando l'asportazione per il successivo passaggio)
+ M98P500L[#1204] (M98 esegui asportazione e rotazione diagonale #1204 volte)
+ M98P600L1       (cambia una volta i parametri #2 e #3)
+ M99             (chiude routine O1700 taglia tutta la parte conica)
+
+(%%%%%%%%%%%%%%%%%%% asporta la parte posteriore, coda filettata %%%%%%%%%%%%%)
+O1800 (inizio routine coda filettata)
+ M98P700L[#1204] (M98 esegui asportazione e rotazione rettilinea #1204 volte)
+ M98P601L1       (cambia una volta il parametro #2)
+ M99             (chiude routine 01800 taglia tutta la coda filettata)
+
+(%%%%%%%%%%%%%%%%%%% taglia la filettatura della coda %%%%%%%%%%%%%%%%%%%%%%%%)
+O1900
+(DA SCRIVERE TUTTA)
+ M99 (chiude routine O1800 taglia la filettatura)

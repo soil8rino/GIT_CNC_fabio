@@ -1,0 +1,7 @@
+# da mettere in un file ~/.axisrc
+# Bind Ins and Canc to jog axis 3 (0=X, 1=Y, 2=Z, 3=A, 4=B, ...)
+root_window.bind("<0xffff>", lambda e: jog_on(3, -get_jog_speed(3)))
+root_window.bind("<0xff63>", lambda e: jog_on(3, get_jog_speed(3)))
+root_window.bind("<KeyRelease-0xffff>", lambda e: jog_off(3))
+root_window.bind("<KeyRelease-0xff63>", lambda e: jog_off(3))
+

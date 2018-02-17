@@ -1,0 +1,59 @@
+
+; Move to the machine origin.         MDI G53 G0 X0Y0Z0 (A0B0C0)
+; Clear the G92 coordinate offset.    MDI G92.1
+; Use the G54 coordinate system.      MDI G54
+; Set the G54 coordinate system to be identical to the machine  coordinate system. MDI G10 L2 P1 X0Y0Z0 (A0B0C0)
+; Turn off tool offsets.              MDI G49
+; G53 G0 X0Y0Z0A0
+G92.1 ; clear coordinate system in the preamble will prevent surprises.
+G54 ;The coordinate system desired should be specified in the preamble. Normally it is the G54 coordinate system
+G49 ; turns off tool length compensation.
+G40 ; turns off tool diameter compensation.
+
+G21 ; use mm for length units, G20 per i pollici
+G18 ; solo assi 18 XZ 19 =YZ 
+; M3 S3000 accendi la fresa a 3000 giri
+; http://gnipsel.com/linuxcnc/g-code/gen01.html
+G64 P0.001 M3 S3000
+; G19 - YZ (default) G64 Path Blending at 0.001
+; M3 S3000 accendi la fresa a 3000 giri
+G80 ;turns off canned cycles.
+; G90 ; absolute distance mode
+G94 ; Units per Minute is the mode used.
+
+
+F100.00
+G0 A0
+; TODO manca il diametro della barra
+; il diametro max della sezione gentleman è di 10.8 mm
+#<_diam_barra>=11
+#<_diam_finale>=10.8
+#<_asportazione_unitaria>=0.2 ; 1/10 di mm
+#<_asportazione_totale>=[[#<_diam_barra>-#<_diam_finale>]/2]
+#<_giri>=0
+#<_fattore>=[#<_asportazione_totale>+#<_asportazione_unitaria>*#<_giri>]
+
+; conviene azzerare sul bordo barra
+; TODO da scrivere subroutine abbassamento Z
+
+#1=60(number of faces)
+#2=[360/#1](angle to turn chuck)
+#6=0
+o<affondazeta> do
+   o<giramandrino> do (do ....... while e un loop implicito o200 e il nome della subroutine) 
+           (DEBUG, l'angolo adesso è #6)	   
+           G0 X0 Z0 
+           G3 X[0.5*#<_diam_finale>] Z[0.5*#<_diam_finale>] I[0.5*#<_diam_finale>] K0
+           G1 X[0.5*#<_diam_finale>] Z[0.5*#<_diam_finale> +#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+           G1 X2 Z[0.5*#<_diam_finale> + #<_fattore> - #<_asportazione_unitaria>*#<_giri>]
+	   #6=[#6+#2]
+	   G0 A#6
+           G0 X0 Z[0.5*#<_diam_finale> +#<_fattore>-#<_asportazione_unitaria>*#<_giri>]
+
+ o<giramandrino> while[#6 lt 359.9] (mentre #6 minore di 359.9 gradi)
+#6=0
+#<_giri>=[#<_giri>+1]
+o<affondazeta> while[#<_asportazione_unitaria>*#<_giri> lt #<_asportazione_totale>]
+ M5 M9 (M5 - stop the spindle. M9 - turn all coolant off. )
+ M2 (M2 - end the program. Pressing cycle start will start th)
+

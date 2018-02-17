@@ -1,0 +1,118 @@
+( G______________________________E________H___________F             F          )
+(                                |        |                      E  |          )
+(                                |        |                      |  |          )
+(                                |        L^^^^^^^^^^M        L  |  |          )
+(  A.............................C                         C  |  |  |          )
+(  .                       .     |                         |  |  |  |          )
+(  .           .                 |                         |  |  |  |          )
+(  . .                           |                         |  |  |  |          )
+(  B                             |D                     B  |  |  |  |          )
+(  |                             |                      #  #  #  #  #          )
+(O |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _|O'_ _ _ _   asse      1  1  1  1  1          )
+(  |                             |          rotazione   0  0  0  0  0          )
+(  |                             |                      4  3  2  1  0          )
+(  B'                            |D'                    B' |  |  |  |          )
+(  . .                           |                         |  |  |  |          )
+(  .           .                 |                         |  |  |  |          )
+(  .                       .     |                         |  |  |  |          )
+(  A'............................C'                        C' |  |  |          )
+(                                |        L'^^^^^^^^^M'       L' |  |          )
+(                                |        |                      |  |          )
+(                                |        |                      E' |          )
+(  G'____________________________E'_______H'_________F'             F'         )
+
+(  A..........#<_lungConoPuntale>...............C                                             )
+(                                E..#<_lungCollarePuntale>..H                                    )
+(                                         L...#<_lungCodaFilettataPuntale>...M                         )
+
+
+(Si tratta di rimuovere le sezioni BGEC et HLMF dalla barra GFF'G'             )
+(Si opera solo sul piano YZ con rotazione A                                    )
+(Quindi: FF'=#1 EE'=#2 LL'=#3 CC'=#4 BB'=#5                         )
+(        AC =#6EH =#7LM =#8                                           )
+(A di coordinate y0 z[#<_lungConoPuntale>/2]                                                  )
+(C di coordinate yO' z[#4/2]                                                 )
+(NECESSARIO AZZERARE ASSE z e y SU ASSE ROTAZIONE al punto O !!!!              )
+
+; G0G21G19G90G40G49G80
+(0=massima rapidita', 21=in mm, 19=piano YZ                                   )
+(90=modo distanza assoluta, 40=Compensation Off                                )
+(49=cancels tool length compensation, 80=Cancel Canned Cycle                   )
+
+
+(_____________ MISURE PEZZO DA REALIZZARE _____________________________________)
+(http://linuxcnc.org/docs/html/gcode/overview.html#gcode:messages )
+(capoverso 23. G Code Best Practices, usare 3 decimali)
+#<_diamBarra>                = #1  (= 9.000 diametro barra cilindrica, FF')
+#<_diamCollarePuntale>       = #2  (= 8.000 diametro collare, EE')
+#<_diamFilettatura>          = #3  (= 8.500 diametro filettatura, LL')
+#<_diamPostPuntale>          = #4  (= 6.950 diametro posteriore puntale, CC')
+#<_diamPuntaPuntale>         = #5  (= 3.550 diametro punta puntale, BB')
+#<_lungConoPuntale>          = #6  (= 14.480 lunghezza parte conica puntale, cateto AC)
+#<_lungCollarePuntale>       = #7  (= 1.000  lunghezza collare, EH)
+#<_lungCodaFilettataPuntale> = #8  (= 12.000 lunghezza coda filettata, LM)
+#<_VelocF>                   = #9  (= 50 Velocita' di spostamento F)
+
+
+
+#<_AB>=[0.5*[#4-#<_diamPuntaPuntale>]]
+#<_tgAngoloCono>=[#<_AB>/#<_lungConoPuntale>]
+
+(_____________ PARAMETRI MACCHINA UTENSILE ____________________________________)
+(COSE DA FARE: considerare il diametro del fresino che non è puntiforme)
+(quindi nella rimozione dell parte inferiore bisogna inserire un offset)
+(Forse è G10 pag 144 manuale G10 A3 significa che la fresa ha diametro 3 ? )
+(oppure G40, G41 e G42 pag 149 manuale deve essere attivo assi XY)
+
+
+#<_360gradi>=360     (gradi di un giro completo o parziale)
+#<_XgradiXvolta>=6       (gradi di spostamento per ogni ciclo)
+#<_deltaZnegativo>=-0.100  (incremento+ decremento- asse z ad ogni ciclo)
+
+#205=1.000  (COSE DA FARE: #205 = diametro del fresino. Suo diametro ?)
+// G28 Y0 Z[#1/2] (A0 definisce "casa" il punto G, detto senza ironia)
+(G28 X~ Y~ Z~ A~ B~ C~ 0vvero variabili riservate da 5161 a 5166)
+
+(_____________ MISURE DERIVATE ________________________________________________)
+#1104=[#4/2-#<_diamPuntaPuntale>/2]           (cateto BA, positivo)
+#1105=[#1104/#<_lungConoPuntale>]              (rapporto cateti, piccolo/grande, BA/AC)
+
+(_____________ RIPETIZIONI NECESSARIE _________________________________________)
+(COSE DA FARE: arrotondare il n di passi a numero intero. ROUND pag 136)
+#1204=[#<_360gradi>/#<_XgradiXvolta>]   (n passi per completare rotazione, asse A)
+#1205=[#1104/ABS[#<_deltaZnegativo>]]   (n passi per percorrere AB, asse Z)
+#1206=[[#1-#3]/2/ABS[#<_deltaZnegativo>]] (n passi per percorrere HL, asse Y)
+
+
+(_____________ PARAMETRI DINAMICI MACCHINA UTENSILE, iniziali__________________)
+(#1 per la x)
+#2=[#<_lungConoPuntale>/#1205]   (POSIZIONE y per la prima diagonale di taglio, AC/n passi per percorrere AB)
+#3=[#1/2+#<_deltaZnegativo>]  (POSIZIONE z = FF'/2 +- decremento asse z)
+
+(_____________ PROGRAMMA VERO E PROPRIO  ______________________________________)
+(COSE DA FARE: chiudere la fresatura con un passaggio finale per portare a     )
+(misura il pezzo. Potrebbe succedere che i passaggi z non siano multipli esatti)
+(della misura finale. 10.7.17 Movimento nelle coordinate assolute – G53)
+(COSE IN PROVA: G30 dovrebbe essere il "torna a casa" G28 definisce casa)
+
+;  G30 (torna a "casa", al punto G, A = zero gradi rotazione -forse ° inutili-)
+ M3 S70 M8 (M3 - start the spindle clockwise at the S speed. M8 - turn flood coolant on. )
+ A0 Y0 Z[#1/2] F[#9] (Posiziona inizialmente l'utensile sul bordo barra, in G)
+
+ o100 do (do ....... while e un loop implicito o200 e il nome della subroutine) 
+       o200 do (do ....... while e un loop implicito o200 e il nome della subroutine) 
+              G90 Y0 Z[#3]  F[#9]
+              G90 Y[#2] Z[#3]  F[#9]
+	      #<_XgradiXvolta>=[#<_XgradiXvolta>+#<_XgradiXvolta>] (aumenta di #<_XgradiXvolta> gradi la variabile #<_XgradiXvolta>)
+              (DEBUG, l'angolo adesso e #<_XgradiXvolta>)
+	      G0 A#<_XgradiXvolta> (gira il mandrino di #<_XgradiXvolta> gradi)
+       o200 while[#<_XgradiXvolta> lt 359.9] (mentre #<_XgradiXvolta> minore di 359.9 gradi)
+       (affonda la diagonale di asportazione della routine O500, cambiando #2 e #3)
+       #3=[#3+#<_deltaZnegativo>]            (spostamento asse z verso B per il taglio diagonale)
+       #2=[#3*1/#<_tgAngoloCono>]   (spostamento asse y verso C per il taglio diagonale) 
+
+  o100 while[#3 gt [#1-#<_diamPuntaPuntale>]/2] (mentre #<_deltaZnegativo> maggiore di 3)
+
+ M5 M9 (M5 - stop the spindle. M9 - turn all coolant off. )
+ M2 (M2 - end the program. Pressing cycle start will start the program at the beginning of the file.)
+

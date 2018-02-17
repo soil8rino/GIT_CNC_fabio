@@ -1,0 +1,75 @@
+(cappuccio OMAS LADY CELLULOIDE, AGGIORNAMENTO 2018)
+
+#1=-0.2     (incremento + = sale    //    decremento - = scende    di z)
+#2=12       (numero di facce)
+#3=12.4    (diametro maggiore cono)
+#4=10.75    (diametro minore cono)
+#5=12.78    (cateto maggiore, ovvero MISURA CORSA LUNGHEZZA CAPPUCCIO)
+ 
+
+
+(___________ variabili calcolate __________) 
+
+(#101=[#1*[-1]] )  (rende positivo il valore z se è negativa)
+#102=[360/#2]      (angolo di una sola faccia, di rotazione)
+#103=[#3/2] (raggio maggiore)
+#104=[#4/2] (raggio minore)
+#106=[#103-#104] (cateto minore della parte da asportare)
+#107=[#5/#106] (rapporto tra cateti della parte da asportare)
+#108=[[#3-#4]*-1]  (VALORE DELLA Z FATTO TRA DIFFERENZA DIAM MAGG E MINORE PER L' ULTIMA RIFINITURA) 
+
+(VARIABILI VELOCITà)
+#200=250
+
+(#1208=[#106/[#1*[-1]]]) (QUESTA FUNZIONA !!!!!!)
+#1208=[#106/ABS[#1]] (Questa forse .....)
+
+
+(valori di partenza)
+
+#1000=[#1] (valore della zeta incrementale)
+#1001=[#5/#1208] (valore della ypsilon incrementale)
+G90 A0 Y0 Z[#1000] F[#200]
+
+(ROUTINE PASSAGGIO CON ROTAZIONE)
+
+(programma vero e proprio. taglia una fetta spessa #1 per #2 facce)
+(poi)
+(abbassa la zeta di una ulteriore fetta di spessore #1)
+(poi)
+(taglia una fetta spessa #1 per #2 facce ....)
+( e ripete il ciclo per #1208 spessori)
+M98P2000L[#1208] (routine di sgrossauta a piu' passaggi)
+G91 A0 Y0 Z0 F[#200] ; z0 al posto di #1000
+M98P2001L[#2] (routine rifinitura a misura precisa pezzo)
+M30
+
+
+
+
+(passa una faccia con tre valori X da #7 mmm e ruota l'asse di #20 gradi)
+O800
+G90 Y[#1001] Z0 F[#200] (prima striscia)
+G90 Y0 Z[#1000]  (torna a capo senza abbassare la Z)
+G91 A[#102] F1000 (ruota l'asse A di #102 gradi)
+M99
+
+(aumenta/ diminuisce il solo valore di Z)
+O700 
+#1000=[#1000+#1] (zeta incrementale)
+#1001=[#1001+[#5/#1208]] (ypsilon incrementale)
+M99
+
+
+O2000
+M98P800L[#2] 
+M98P700L1 (passa a O700, che abbassa/alza la Z)
+M99
+
+O2001 (rifinitura finale a misura precisa pezzo)
+G90 Y0 Z0 (dal punto finale della misura del cono piccolo fa le facce fino a z zero #2 volte)
+G90 Z[#108] (torna a capo senza abbassare la Z)
+G90 Y[#5] Z0 F[#200] (prima striscia)
+G90 Y0 
+G91 A[#102] F1000 (ruota l'asse A di #102 gradi)
+M99

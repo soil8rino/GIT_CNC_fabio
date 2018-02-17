@@ -1,0 +1,46 @@
+G92 X0Y0Z0A0; coordinate system in the preamble will prevent surprises.
+G21 ; use mm for length units, G20 per i pollici
+G19 ; G19 - solo assi YZ 
+; M3 S3000 accendi la fresa a 3000 giri
+; http://gnipsel.com/linuxcnc/g-code/gen01.html
+G40 ; turns off tool diameter compensation.
+G49 ; turns off tool length compensation.
+G54 ;The coordinate system desired should be specified in the preamble. Normally it is the G54 coordinate system
+G64 P0.001 M3 S3000
+; G19 - YZ (default) G64 Path Blending at 0.001
+; M3 S3000 accendi la fresa a 3000 giri
+G80 ;turns off canned cycles.
+G90 ; absolute distance mode
+G94 ; Units per Minute is the mode used.
+ G92.2
+
+
+
+F1000.00
+G0 A0
+; TODO manca il diametro della barra
+; il diametro max della sezione gentleman è di 10.8 mm
+#<_diam_barra>=10
+#<_diam_max_finale>=9.3
+#<_diam_min_finale>=0
+#<_asportazione_unitaria>=0.1 ; 1/10 di mm
+#<_asportazione_totale>=[[#<_diam_barra>-#<_diam_min_finale>]/2]
+#<_giri>=0
+#<_fattore>=[#<_asportazione_totale>+#<_asportazione_unitaria>*#<_giri>]
+
+; conviene azzerare sul bordo barra
+; TODO da scrivere subroutine abbassamento Z
+
+#1=60 (number of faces)
+#2=[360/#1](angle to turn chuck)
+#6=0
+   o200 do (do ....... while e un loop implicito o200 e il nome della subroutine) 
+           (DEBUG, l'angolo adesso è #6)
+           o<profomas361_t> call (chiama il file esterno di nome profilo)
+	   #6=[#6+#2]
+	   G0 A#6
+   o200 while[#6 lt 359.9] (mentre #6 minore di 359.9 gradi)
+#6=0
+ M5 M9 (M5 - stop the spindle. M9 - turn all coolant off. )
+ M2 (M2 - end the program. Pressing cycle start will start th)
+

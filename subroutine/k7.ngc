@@ -1,0 +1,4 @@
+o<k7> sub
+G0 X0 Y0 Z0
+G2 X0 Y1 Z-1 I1 J0.5 P20 F25
+o<k7> endsub

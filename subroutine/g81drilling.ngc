@@ -1,0 +1,11 @@
+(info: 5 fori lungo l'asse Y a X = 0)
+o<g81drilling> sub
+
+G0 X1 Y2 Z3
+; G91 G98 G82 X0 Y10 Z-23 R1.8 L5 P10 F1000 ; sposta su x 0, su Y 10 incremento, su Z (3+1.8=4.8) affonda a 4.8-23 = 18.2
+; g82 P stai P secondi a estrarre trucioli
+G91 G98 G83 X0 Y10 Z-23 R1.8 L1 Q2 F1000 
+; g83 ogni Q mm escie togli il truciolo
+G0 X0 Y[-10*5] Z0 ; 10*5 = Y10 * L5
+o<g81drilling> endsub
+M2

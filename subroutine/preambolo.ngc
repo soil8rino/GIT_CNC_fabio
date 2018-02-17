@@ -1,0 +1,29 @@
+; Move to the machine origin.         MDI G53 G0 X0Y0Z0 (A0B0C0)
+; Clear the G92 coordinate offset.    MDI G92.1
+; Use the G54 coordinate system.      MDI G54
+; Set the G54 coordinate system to be identical to the machine  coordinate system. MDI G10 L2 P1 X0Y0Z0 (A0B0C0)
+; Turn off tool offsets.              MDI G49
+; G53 G0 X0Y0Z0A0
+G92.1 ; clear coordinate system in the preamble will prevent surprises.
+G18   ; solo assi: XZ=18,  YZ=19 
+G21   ; use mm for length units, G20 per i pollici
+G40   ; cancel cutter radius compensation
+G49   ; cancel tool lengthoffset
+G90   ; absolute distance mode
+G49   ; turns off tool length compensation.
+G94   ; Units per Minute is the mode used for feedrate.
+G54   ;The coordinate system desired should be specified in the preamble. Normally it is the G54 coordinate system
+
+; M3 S3000 accendi la fresa a 3000 giri
+; http://gnipsel.com/linuxcnc/g-code/gen01.html
+#<tolerance>  = 0.001
+G64 P#<tolerance> M3 S3000 ; path control stop. G64 Path Blending at 0.001
+G80 ;turns off canned cycles
+
+
+
+
+
+
+
+

@@ -1,0 +1,165 @@
+(info: IN FIERI testina filettata -- Ctrl-U modifica)
+o<filetto_cappuccio> sub
+
+#<prof_iniz_filetto>   =  #1 (= 4 prof iniz filetto)
+#<diam_int>   =  #2 (= 6.2 diam int)
+#<alt_ext>    =  #3 (= 7 altezza non serve ora)
+#<profondita> =  #4 (= 8 profondita)
+#<passo>      =  #5 (= 0.7 passo filetto)
+#<principi>   =  #6 (= 4 principi. Max 4)
+#<velocita>   =  #7 (= 500 velocita)
+#<verso_elic> =  #8 (= 1  dx 1 sx -1)
+#<diam_fresa> =  #9 (= 2.00 diam tagliente)
+#<lung_fresa> = #10 (= 8.00 lungh fresa)
+
+
+; parametri calcolati dai dati di base
+F#<velocita>
+;___________Raggi______________
+#<raggio_fresa>         = [0.5 * #9]
+;#<raggio_ext_pezzo>     = [[0.5 * #1]-#<raggio_fresa>]
+#<raggio_int_pezzo>     = [[0.5 * #2]-#<raggio_fresa>]
+#<raggio_attuale_pezzo> = #<raggio_int_pezzo>
+;___________Profondita_________
+#<z_sicura>             = 1
+#<z_ext>                = [-#3]
+#<z_prof>               = [-#4]
+#<lunghezza_filetto>    = [#4-#1]
+
+;___________Filettatura________
+#<passo_reale>          = [#5*#6]
+#<giri_elicoide>        = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
+#<prof_filetto>         = [0.5 * #5 * sqrt[3]] ; non ancora utilizzato 
+
+;___________Contatori__________
+; #<n_cerchi_interni>     = [#<raggio_int_pezzo>/#<raggio_fresa>]
+; #<n_cerchio_attuale>    = #<n_cerchi_interni>
+
+
+; controlli. messi qui impediscono danni
+o10 if [#3 GT #10 OR #4 GT #10]; fermati e avverti
+ (MSG, Fresa troppo corta per il lavoro ! )
+ M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o10 endif
+
+o11 if [#6 GT 4 OR #6 LT 1]; fermati e avverti
+ (MSG, Sono permessi 1, 2, 3 o 4 principi solamente)
+ M2
+o11 endif
+
+
+;G53 G0 X0 Y0 Z0 ;move to the position
+;G28.1 ;store the current absolute position in the variables
+; la riga sopra definisce la posizione dove tornare quando serve
+
+; si presuppone partenza dal centro del cerchio
+; spostamento alla periferia esterna
+;G0 X#<raggio_ext_pezzo> Y0 Z#<z_sicura>
+; affonda esterno
+;G1 Z#<z_ext>
+; taglio circonferenza esterna
+;G2 X#<_x> Y0 I[-#<raggio_ext_pezzo>] J0
+; salita a zona libera da ostacoli
+; G0 Z#<z_sicura>
+; spostamento alla periferia interna
+G0 X-#<raggio_int_pezzo> 
+G0 Z-#1
+;G0 X#<raggio_int_pezzo> Y0 
+; affonda interno
+;G1 Z#<z_prof>
+
+; loop per svuotamento circonferenze interne
+; se si usa il while, s'incarta sull'ultimo giro con un cerchio a raggio zero
+;o100 repeat [#<n_cerchi_interni>]
+;     G2 X#<_x> Y0 I[-#<raggio_attuale_pezzo>] J0
+;     G0 Z#<z_sicura> ; torna su
+;     #<raggio_attuale_pezzo> = [#<raggio_attuale_pezzo>-#<raggio_fresa>]
+;     G0 X[#<_x>- #<raggio_fresa>] ;scorcia il raggio  
+;     G1 Z#<z_prof> ; ri-affonda
+     ; #<n_cerchio_attuale> = [ #<n_cerchi_interni> - 1]
+;o100 endrepeat
+
+; torna a casa SPERIMENTALE
+; G28 Z#<z_sicura> 
+; torna al bordo interno per cominciare la filettatura
+
+g91
+#<raggio_int_pezzo> = [#<raggio_int_pezzo>+#<prof_filetto>]
+G0 X#<raggio_int_pezzo>
+g90
+; ; routine per filettatura interna sia dx che sx.
+;o111 if [#8 GT 0] ; #8  è il verso della filettatura.
+ (MSG, esecuzione filettatura interna destra)
+ ; questa parte sotto si occupa del numero di principi
+ ; ovvero di spostare il punto iniziale intorno alla circonferenza interna
+       ; conviene passare a coordinate polari ? The @n is the distance and ^n is the angle
+        o112 if [#6 EQ 1] ;#6 = numero di principi
+(DEBUG, #<raggio_int_pezzo> #<prof_filetto>)
+             G2 X#<_x> Y#<_y> I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide>
+        o112 elseif [#6 EQ 2]
+             G2 X#<_x> Y#<_y> I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G0 X#<raggio_int_pezzo> Y0
+             G0 Z-#1  
+             ; coordinate polari, si sposta di un diametro
+             G1 @[#<raggio_int_pezzo>*2] ^180
+             (MSG, esecuzione secondo filetto interno)
+             G2 X#<_x> Y#<_y> I[#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+        o112 elseif [#6 EQ 3]
+             G2 X#<_x> Y#<_y> I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G0 X#<raggio_int_pezzo> Y0
+             G0 Z-#1
+             G1 @[#<raggio_int_pezzo>*2] ^120 
+; TODO da rivedere i parametri I e J del secondo e trezo filetto OK piazzamento troppo grande diametro
+             G2 X#<_x> Y#<_y> I[-cos[120]*#<raggio_int_pezzo>] J[-sin[120]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>              
+             G0 X#<raggio_int_pezzo> Y0 
+             G0 Z-#1
+             G1 @[#<raggio_int_pezzo>*2] ^240 
+             G2 X#<_x> Y#<_y> I[-cos[240]*#<raggio_int_pezzo>] J[-sin[240]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>
+        o112 elseif [#6 EQ 4]
+             G2 X#<_x> Y#<_y> I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G0 X#<raggio_int_pezzo> Y0
+             G0 Z-#1
+             G1 @[#<raggio_int_pezzo>*2] ^90 
+; TODO da rivedere i parametri I e J del secondo e trezo filetto OK piazzamento troppo grande diametro
+             G2 X#<_x> Y#<_y> I[-cos[90]*#<raggio_int_pezzo>] J[-sin[90]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>              
+             G0 X#<raggio_int_pezzo> Y0 
+             G0 Z-#1
+             G1 @[#<raggio_int_pezzo>*2] ^180
+             G2 X#<_x> Y#<_y> I[-cos[180]*#<raggio_int_pezzo>] J[-sin[180]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>
+             G0 X#<raggio_int_pezzo> Y0
+             G0 Z-#1
+             G1 @[#<raggio_int_pezzo>*2] ^270 
+             G2 X#<_x> Y#<_y> I[-cos[270]*#<raggio_int_pezzo>] J[-sin[270]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>              
+             (MSG, esecuzione uno dei tre filetti interni)
+       o112 endif  ; fine routine filettatura dx
+       
+;o111 elseif ; inizio routine filettatura sinistra
+ (MSG, esecuzione filettatura interna sinistra)
+;  o112 if [#6 EQ 1] ;#6 = numero di principi
+;              G3 X#<_x> Y#<_y> I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide>
+;        o112 elseif [#6 EQ 2]
+;             G3 X#<_x> Y#<_y> I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+;             ; coordinate polari, si sposta di un diametro
+;             G1 @[#<raggio_int_pezzo>] ^180 
+;             (MSG, esecuzione secondo filetto interno)
+;             G3 X#<_x> Y#<_y> I[#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+;        o112 elseif [#6 EQ 3]
+ ;             G3 X#<_x> Y#<_y> I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+;              G1 @#<raggio_int_pezzo> ^60
+;              G3 X#<_x> Y#<_y> I[-0.5*#<H>] J[-0.5*#<L>] Z#<z_prof> P#<giri_elicoide> 
+;              G1 @#<raggio_int_pezzo> ^120
+ ;             G3 X#<_x> Y#<_y> I[-0.5*#<H>] J[0.5*#<L>] Z#<z_prof> P#<giri_elicoide>          
+ ;        o112 elseif [#6 EQ 4]
+ ;             G28 ; torna al centro
+;              G1 @#<raggio_int_pezzo> ^[90]
+             (MSG, esecuzione uno dei tre filetti interni)
+;  o112 endif  ; fine routine filettatura sx
+;o111 endif ; fine routine filettatura dx e sx
+
+; torna a casa
+G0 X0 Y0
+G0 Z#<Z_sicura>
+(MSG, pezzo finito)
+o<filetto_cappuccio> endsub
+
+

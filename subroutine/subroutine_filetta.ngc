@@ -1,0 +1,140 @@
+(info: DA RIVEDERE ci sono dei pezzi)
+
+o<subroutine_filetta> sub
+#<principi>   =  #1 (= 2 da 1 a 5 )
+#<passo>      =  #2 (= 0.7 mm passo)
+#<lunghezza>  =  #3  (= 10 mm lungh)
+#<passaggi_asportazione> = #4 (= 5 passaggi asportaz)
+#<passaggi_rifinitura> =   #5 (= 1 passaggi rifin)
+#<F_sgrossatura>    =      #6 (= 100 vel sgrossatura) 
+#<F_rifinitura>    =       #7 (= 10 vel rifinitura)
+#<verso_sx_dx>   =         #8 (= 1 -1 per filetto sinistro)
+#<gradi_ingresso_dolce> =  #9 (= 90)
+
+; TODO procede dal mandrino verso la punta del pezzo INNATURALE
+; TODO sentire FABIO se sia meglio andare dalla punta verso il mandrino
+; TODO basta cambiare il segno dell'angolo ?? TEMO DI NO
+
+; i parametri di filettatura sono i seguenti
+
+  ; #1 <_n_principi>= 2 ; da 1 a 5 principi per numeri interi
+  ; #2 <_passo>
+  ; #3 <_lunghezza>= [#<_passo>*5]
+  ; #4 <_passaggi_asportazione> numero intero. 3 dovrebbe andare per passi di 0.7
+  ; #5 <_n_passaggi_rifinitura>= 1 ; 1 effettua un ciclo avanti e indietro, ovvero 2 passaggi di rifinitura
+  ; #6 <_vel_sgrossatura>= 30
+  ; #7 <_vel_rifinitura>= 15; [#<_vel_sgrossatura>/2]  
+  ; #8 <_verso>= -1 sinistro, 1 destro
+  ; #9 <_ingresso dolce>= gradi dove finisce la discesa TODO
+
+(DEBUG, #1 principi, #2 passo, #3, lunghezza,  #4 prof asportazione, #5 passaggi rifinitura, #6 vel sgrossatura, #7 vel rifinitura)
+(MSG, Premi il bottone "pausa" a video per continuare)
+M0 ; pausa per verificare che i numeri sopra vadano bene
+; (DEBUG, valori. X #<_x>: A #<_a>: Z #<_z>)
+; M0
+
+
+ 
+o111 repeat [#1] ; #1 è il numero dei principi. continua a riga 59
+;+++++++++++++++++++++++++++++++++++++++++++++++ 
+;+++++ INIZIO ROUTINE PER UN SOLO FILETTO ++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++ 
+ ; parametri calcolati. Non servono all'utente questi sotto sono locali
+#<prof_asportaz>=[#2*0.5*SQRT[3]/#4] ; calcolo della prof asportazione ad ogni giro
+#<prof_filetto>= [0.5*#2*SQRT[3]]; l/2 * radice di tre ; 0.60621778 per 0.7 passo sqrt3 = 1.73, 0.86*passo
+#<passo_reale>= [#2*#1]
+#<gradi_finali>= [-1*#8*360*#3/#<passo_reale>]
+#<gradi_fine_discesa>= [-1*#8*#9] ; #9 gradi dove comincia la max profondita filetto
+#<x_fine_discesa>= [[#<gradi_fine_discesa>/360]*#<passo_reale>]
+#<n_passaggi>= [FIX[#<prof_filetto>/#<prof_asportaz>]] ; viene 6.06 passaggi per 0.7 di passo
+#<conta_passaggi>= 1
+#<prof_affinatura>=  [[#<prof_filetto>/#<prof_asportaz>]-#<n_passaggi>]; dovrebbe essere 0.06
+
+; controlli. messi qui impediscono danni
+o100 if [#<prof_asportaz> GT 0.21] ;OR #4 non intera ; fermati e avverti se asporti piu' di 0.21 mm
+; 0.21 sono tre passaggi per un passo da 0.7
+ (MSG, E ttu rompi i' ffresino, CAPOCCHIONE! Asportazione max permessa 2.1/10 mm)
+; TODO inserire altri calcoli e altri messsaggi se troppi principi o filetti troppo fitti
+M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o100 endif
+
+
+
+; asportazione in due sensi. Assume fresa vicino al mandrino tornio
+     (MSG, Fase di sgrossatura)     
+(    o101 while [#<conta_passaggi> LT #<n_passaggi>] ; esegue routine per un numero intero di passaggi )
+(         F#6)
+(          G92 Z0 ; azzera la coordinata Z)
+(          G1 Z-#<prof_asportaz> )
+(          G1 X-#3  A#<gradi_finali> )
+(         #<conta_passaggi>=[#<conta_passaggi>+1] ; aggiorna  i passaggi)
+(         ; si torna indietro)
+(         G92 Z0)
+(         G1 Z-#<prof_asportaz>)
+(         G0 X0 A0  ; passi vecchi. Scalino del filetto senza discesa)
+(         #<conta_passaggi>=[#<conta_passaggi>+1])
+(    o101 endwhile )
+
+    o101 while [#<conta_passaggi> LT #<n_passaggi>] ; esegue routine per un numero intero di passaggi 
+         F#6
+         ; TODO inserito per avere discesa invece di scalino
+         G0 X0 Z0 A0 ; azzeramento, 
+         G1 X-#<x_fine_discesa> Z[-#<prof_asportaz>*#<conta_passaggi>] A#<gradi_fine_discesa> ; scende gradualmente
+         G1 X[-#3+#<x_fine_discesa>] A[#<gradi_finali>-#<gradi_fine_discesa>] ; non compie tutti i gradi richiesti
+         G1 X-#3 Z0 A#<gradi_finali> ; sale gradualmente fino al fondo filetto
+         #<conta_passaggi>=[#<conta_passaggi>+1] ; aggiorna  i passaggi
+         ; si torna indietro
+         G1 X[-#3+#<x_fine_discesa>] Z[-#<prof_asportaz>*#<conta_passaggi>] A[#<gradi_finali>-#<gradi_fine_discesa>] ; risale gradualmente fino al fondo filetto
+         G1 X-#<x_fine_discesa> A#<gradi_fine_discesa>  ; non compie tutti i gradi richiesti, ma all'indietro
+         G1 X0 Z0 A0 ; ritorno al punto di partenza, 
+         #<conta_passaggi>=[#<conta_passaggi>+1] ; aggiorna  i passaggi
+    o101 endwhile 
+   ; da qui in poi esegue il passaggio rimanente a raggiungere il fondo filetto
+    o102 if [#<prof_affinatura> GT 0]
+      (MSG, Ultima fase di asportazione a profondità richiesta esatta )
+         G1 X-#<x_fine_discesa> Z-#<prof_filetto> A#<gradi_fine_discesa> ; scende gradualmente
+         G1 X[-#3+#<x_fine_discesa>] A[#<gradi_finali>-#<gradi_fine_discesa>] ; non compie tutti i gradi richiesti
+         G1 X-#3 Z0 A#<gradi_finali> ; sale gradualmente 
+         ; torna indietro
+         G1 X[-#3+#<x_fine_discesa>] A[#<gradi_finali>-#<gradi_fine_discesa>] ; scende gradualmente fino al fondo filetto
+         G1 X-#<x_fine_discesa> A#<gradi_fine_discesa>  ; non compie tutti i gradi richiesti, ma all'indietro
+         G1 X0 Z0 A0 ; ritorno al punto di partenza
+ 
+    o102 endif
+
+    o103 if [#5 GT 0]
+(       ;MSG, Fase di rifinitura) 
+(     o104  repeat [#5])
+(      F#7)
+(      ; G1 X-#<x_fine_discesa> Z-#3 A#<gradi_fine_discesa>)
+(      ; TODO RIVEDERE PER DISCESA GRADUALE)
+(      G1 X-#3 A#<gradi_finali> ; procede nello stesso solco dell'asportazione finale)
+(      G1 X0 A0 ; torna indietro per la stessa strada del passo sopra)
+(     o104 endrepeat)
+(MSG, rifinitura ancora da scrivere per discesa graduale)
+    o103 endif
+
+    ; G0 Z[#<_n_passaggi>*#<prof_asportaz>+#<prof_affinatura>]; riporta la fresa alla Z iniziale dopo aver fatto un filetto  
+;+++++++++++++++++++++++++++++++++++++++++++++++ 
+;++++++ FINE ROUTINE PER UN SOLO FILETTO +++++++
+;+++++++++++++++++++++++++++++++++++++++++++++++ 
+; questa parte sotto si occupa del numero di principi
+      o112 if [#1 EQ 1] ;#1 = numero di principi
+        G0 A0
+       o112 elseif [#1 EQ 2]
+        G0 A180
+       o112 elseif [#1 EQ 3]
+        G0 A120
+       o112 elseif [#1 EQ 4]
+        G0 A90
+       o112 else [#1 EQ 5]
+        G0 A72 
+      o112 endif
+    G92 A0  ; azzera l'angolo 
+
+ o111 endrepeat
+
+o<subroutine_filetta> endsub
+
+M2
+
