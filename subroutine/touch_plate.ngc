@@ -1,0 +1,31 @@
+[touch_plate.ngc]
+; la versione originale ha i pollici e non i mm 
+o <touch_plate> sub
+G91 ; coordinate relative
+G38.2 Z-2.5 F6 ; scendi veloce per toccare approssimativamente
+F10 G1 Z0.15 ; torna su di 0.06 pollici
+G38.2 Z-2.5 F1 ; scendi piano per toccare precisamente
+F10 G1 Z0.25  ; torna su di 0.1 pollici
+
+; versione 1 con zero manuale
+T0 M6 ; pausa
+F10 G1 Z-0.45 ; giu allo zero vero -0.1 su + 0.08 (20/10 mm) spessore
+              ; del touchplate
+G90 ; coordinate assolute
+
+; versione 2
+; G90
+; G38.2 Z-1 F1
+; G10 L20 P0 Z0.1230
+; G0 Z0.5
+
+; versione 3
+; G90
+; G38.2 Z-1 F1
+; G92 Z0.1230
+; G0 Z0.5
+
+
+o <touch_plate> endsub
+; presa da
+; https://www.youtube.com/watch?v=HvRG91yWNCQ
