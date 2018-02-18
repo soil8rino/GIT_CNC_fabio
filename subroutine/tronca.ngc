@@ -7,15 +7,16 @@ o<tronca> sub
 #<coord_x1>         =  #3 (= 10.00 fresa a sx del punto)
 #<diam_inizio>      =  #4 (= 12.5 diam barra)
 #<prof_asportaz>    =  #5 (= 0.2 una asprtz su Z)
-
-
+;; TODO MANCA LA LUNGHEZZA FRESA potrebbe non bastare
+ 
+#<bordo_barra>   = [0.5 * #4]  
 #<giri_da_fare>  = [0.5 * #4 / #5]
 #<gradi_finali>  = [#<giri_da_fare> * 360]
 
-G91                             ; coordinate relative
-G0 Z[0.5 * #6]                  ; sale dal centro barra al bordo barra
+G90                             ; coordinate assolute
+G0 Z#<bordo_barra>              ; sale dal centro barra al bordo barra
 G0 X[#3 + #1]                   ; si sposta al punto di troncatura
-G1 Z0 A#<gradi_finali>     F#2  ; tronca
+G1 Z0 A#<gradi_finali>      F#2 ; tronca
 G1 A[#<gradi_finali> + 360] F#2 ; + 360 per fare un giro completo di rifinitura
 G92 A0                          ; azzera i gradi di rotazione
 

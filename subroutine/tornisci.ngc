@@ -10,26 +10,29 @@ o<tornisci> sub
 #<prof_asportaz>    =  #5 (= 0.2 spessore asprtz su X e Z)
 #<diam_inizio>      =  #6 (= 12.5 diam barra)
 #<diam_voluto>      =  #7 (= 8.5 diam voluto)
+; TODO MANCA LA LUNGHEZZA della FRESA. Potrebbe non bastare
 
-
-#<prof_taglio>           = [0.5 * [#6 - #7]]
-#<z_finale>              = [0.5 * #6 - #<prof_taglio>]
+#<bordo_barra>           = [0.5 * #6]
+#<z_finale>              = [0.5 * #7]
 #<lunghezza_asportaz>    = [ABS[#4 - #3]]
 #<giri_da_fare>          = [FIX[#<z_finale> / #5]]
 #<gradi_finali_affondo>  = [#<giri_da_fare> * 360]
 #<gradi_finali_asportaz> = [[#<lunghezza_asportaz> / #<prof_asportaz>] * 360]
 
 ;subroutines di verifica inserimento dati corretti
-o100 if [#<prof_asportaz> GT #<prof_taglio>]
+o10 if [#<prof_asportaz> GT #<z_finale>]
 (MSG, RICHIESTA IMPOSSIBILE !! Profondità di asportazione per singolo passaggio maggiore di quella di taglio finale)
 M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
-o100 elseif [#<lunghezza_asportaz> LT #1] ; manca lo spazio per asportare
+o10 elseif [#<lunghezza_asportaz> LT #1] ; manca lo spazio per asportare
 (MSG, Spazio tra le due coordinate X insufficiente per il diametro della fresa Necessari o fresa piu' piccola o spazio piu' grande)
+o10 elseif [#1 LT #5] ; si fa una filettatura
+(MSG, filettatura !! spostamento X > di diametro fresa)
 M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
-o100 endif 
+o10 endif 
 
-G91                                           ; coordinate relative
-G0 Z[0.5 * #6]                                ; sale dal centro barra al bordo barra
+
+G90                                           ; coordinate assolute
+G0 Z#<bordo_barra>                            ; sale dal centro barra al bordo barra
 G0 X[#3 + #1]                                 ; si sposta al punto x1 di tornitura
 G1 Z#<z_finale> A#<gradi_finali_affondo> F#2  ; affonda gradualmente girando il mandrino fino alla prof richiesta
 ; G1 A[#<gradi_finali_affondo> + 360]      F#2  ; + 360 per fare un giro completo di rifinitura
