@@ -5,11 +5,11 @@ o<subroutine_filetta> sub
 #<passo>      =  #2 (= 0.7 mm passo)
 #<lunghezza>  =  #3  (= 10 mm lungh)
 #<passaggi_asportazione> = #4 (= 5 passaggi asportaz)
-#<passaggi_rifinitura> =   #5 (= 1 passaggi rifin)
-#<F_sgrossatura>    =      #6 (= 100 vel sgrossatura) 
-#<F_rifinitura>    =       #7 (= 10 vel rifinitura)
-#<verso_sx_dx>   =         #8 (= 1 -1 per filetto sinistro)
-#<gradi_ingresso_dolce> =  #9 (= 90)
+#<passaggi_rifinitura>   = #5 (= 1 passaggi rifin)
+#<F_sgrossatura>         = #6 (= 100 vel sgrossatura) 
+#<F_rifinitura>          = #7 (= 10 vel rifinitura)
+#<verso_sx_dx>           = #8 (= 1 -1 per filetto sinistro)
+#<gradi_ingresso_dolce>  = #9 (= 90)
 
 ; TODO procede dal mandrino verso la punta del pezzo INNATURALE
 ; TODO sentire FABIO se sia meglio andare dalla punta verso il mandrino
@@ -50,14 +50,18 @@ o111 repeat [#1] ; #1 è il numero dei principi. continua a riga 59
 #<conta_passaggi>= 1
 #<prof_affinatura>=  [[#<prof_filetto>/#<prof_asportaz>]-#<n_passaggi>]; dovrebbe essere 0.06
 
-; controlli. messi qui impediscono danni
-o100 if [#<prof_asportaz> GT 0.21] ;OR #4 non intera ; fermati e avverti se asporti piu' di 0.21 mm
+; Controlli. messi qui impediscono danni
+o10 if [#<prof_asportaz> GT 0.21] ;OR #4 non intera ; fermati e avverti se asporti piu' di 0.21 mm
 ; 0.21 sono tre passaggi per un passo da 0.7
  (MSG, E ttu rompi i' ffresino, CAPOCCHIONE! Asportazione max permessa 2.1/10 mm)
+M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o10 endif
+
+o11 if [#1 GT 5] ; fermati e avverti che al max si possono fare 5 principi
+ (MSG, routine prevista per un max di 5 principi)
 ; TODO inserire altri calcoli e altri messsaggi se troppi principi o filetti troppo fitti
 M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
-o100 endif
-
+o11 endif
 
 
 ; asportazione in due sensi. Assume fresa vicino al mandrino tornio
@@ -79,9 +83,9 @@ o100 endif
          F#6
          ; TODO inserito per avere discesa invece di scalino
          G0 X0 Z0 A0 ; azzeramento, 
-         G1 X-#<x_fine_discesa> Z[-#<prof_asportaz>*#<conta_passaggi>] A#<gradi_fine_discesa> ; scende gradualmente
+         G1 X-#<x_fine_discesa> Z[-#<prof_asportaz>*#<conta_passaggi>] A#<gradi_fine_discesa> ; scende Z gradualmente
          G1 X[-#3+#<x_fine_discesa>] A[#<gradi_finali>-#<gradi_fine_discesa>] ; non compie tutti i gradi richiesti
-         G1 X-#3 Z0 A#<gradi_finali> ; sale gradualmente fino al fondo filetto
+         G1 X-#3 Z0 A#<gradi_finali> ; sale gradualmente fino al fondo filetto TODO non chiaro fondo Z o fondo X ?
          #<conta_passaggi>=[#<conta_passaggi>+1] ; aggiorna  i passaggi
          ; si torna indietro
          G1 X[-#3+#<x_fine_discesa>] Z[-#<prof_asportaz>*#<conta_passaggi>] A[#<gradi_finali>-#<gradi_fine_discesa>] ; risale gradualmente fino al fondo filetto
@@ -102,7 +106,7 @@ o100 endif
  
     o102 endif
 
-    o103 if [#5 GT 0]
+    o103 if [#5 GT 0] ;#5 numero di passaggi di rifinitura
 (       ;MSG, Fase di rifinitura) 
 (     o104  repeat [#5])
 (      F#7)
@@ -120,19 +124,19 @@ o100 endif
 ;+++++++++++++++++++++++++++++++++++++++++++++++ 
 ; questa parte sotto si occupa del numero di principi
       o112 if [#1 EQ 1] ;#1 = numero di principi
-        G0 A0
+        G0 A0 ; parte da 0 gradi
        o112 elseif [#1 EQ 2]
-        G0 A180
+        G0 A180  ; parte da 180 gradi
        o112 elseif [#1 EQ 3]
-        G0 A120
+        G0 A120  ; parte da 120 gradi
        o112 elseif [#1 EQ 4]
-        G0 A90
+        G0 A90  ; parte da 90 gradi
        o112 else [#1 EQ 5]
-        G0 A72 
+        G0 A72  ; parte da 72 gradi
       o112 endif
     G92 A0  ; azzera l'angolo 
 
- o111 endrepeat
+ o111 endrepeat ; fine della routine intera per #1 principi
 
 o<subroutine_filetta> endsub
 
