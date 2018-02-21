@@ -1,21 +1,22 @@
 (info: asporta materiale laterale a una barra -- Ctrl-U modifica)
-
+; cadr-safe-safe and cddr-safe
 o<tornisci> sub
-#<diam_fresa>       =  #1 (= 0.5 diam. fresa) 
-#<vel_F>            =  #2 (= 1000 vel mandrino)
+#<diam_fresa>       =  #1 (= 0.5 mm diam. fresa)
+#<lungh_fresa>      =  #2 (= 5  mm diam. fresa)
+#<vel_F>            =  #3 (= 1000 vel mandrino)
 
-#<coord_x1>         =  #3 (= 10.00 1a x, fresa a sx del punto)
-#<coord_x2>         =  #4 (= 14.00 2a x, fresa a sx del punto)
+#<coord_x1>         =  #4 (= 10.00 1a x, fresa a sx del punto)
+#<coord_x2>         =  #5 (= 14.00 2a x, fresa a sx del punto)
 
-#<prof_asportaz>    =  #5 (= 0.2 spessore asprtz su X e Z)
-#<diam_inizio>      =  #6 (= 12.5 diam barra)
-#<diam_voluto>      =  #7 (= 8.5 diam voluto)
-; TODO MANCA LA LUNGHEZZA della FRESA. Potrebbe non bastare
+#<prof_asportaz>    =  #6 (= 0.2 spessore asprtz su X e Z)
+#<diam_inizio>      =  #7 (= 12.5 diam barra)
+#<diam_voluto>      =  #8 (= 8.5 diam voluto)
 
-#<bordo_barra>           = [0.5 * #6]
-#<z_finale>              = [0.5 * #7]
-#<lunghezza_asportaz>    = [ABS[#4 - #3]]
-#<giri_da_fare>          = [FIX[#<z_finale> / #5]]
+#<bordo_barra>           = [0.5 * #7]
+#<z_finale>              = [0.5 * #8]
+#<prof_totale_asportaz>  = [#<bordo_barra> - #<z_finale>]    
+#<lunghezza_asportaz>    = [ABS[#5 - #4]]
+#<giri_da_fare>          = [FIX[#<z_finale> / #6]]
 #<gradi_finali_affondo>  = [#<giri_da_fare> * 360]
 #<gradi_finali_asportaz> = [[#<lunghezza_asportaz> / #<prof_asportaz>] * 360]
 
@@ -25,17 +26,20 @@ o10 if [#<prof_asportaz> GT #<z_finale>]
 M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
 o10 elseif [#<lunghezza_asportaz> LT #1] ; manca lo spazio per asportare
 (MSG, Spazio tra le due coordinate X insufficiente per il diametro della fresa Necessari o fresa piu' piccola o spazio piu' grande)
-o10 elseif [#1 LT #5] ; si fa una filettatura
+o10 elseif [#1 LT #6] ; si fa una filettatura
 (MSG, filettatura !! spostamento X > di diametro fresa)
+M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o10 elseif [#<prof_totale_asportaz> GT #2] ; non si può raggiungere la profondità di taglio richiesta
+(MSG, fresa troppo corta per l'asportazione totale richiesta)
 M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
 o10 endif 
 
 
 G90                                           ; coordinate assolute
 G0 Z#<bordo_barra>                            ; sale dal centro barra al bordo barra
-G0 X[#3 + #1]                                 ; si sposta al punto x1 di tornitura
-G1 Z#<z_finale> A#<gradi_finali_affondo> F#2  ; affonda gradualmente girando il mandrino fino alla prof richiesta
-; G1 A[#<gradi_finali_affondo> + 360]      F#2  ; + 360 per fare un giro completo di rifinitura
+G0 X[#4 + #1]                                 ; si sposta al punto x1 di tornitura
+G1 Z#<z_finale> A#<gradi_finali_affondo> F#3  ; affonda gradualmente girando il mandrino fino alla prof richiesta
+; G1 A[#<gradi_finali_affondo> + 360]      F#3  ; + 360 per fare un giro completo di rifinitura
 G92 A0                                        ; azzera i gradi di rotazione
 
 o150 if [#<lunghezza_asportaz> EQ 0]          ; se x1 e x2 sono uguali fermati dopo fatto il taglio
@@ -43,8 +47,8 @@ o150 if [#<lunghezza_asportaz> EQ 0]          ; se x1 e x2 sono uguali fermati d
 M2
 o150 elseif [#<lunghezza_asportaz> GT #1]     ; se non è solo affonda, prosegue asportazione verso X2
 
-G1 X[#4+#1] A#<gradi_finali_asportaz> F#2     ; forse F#2 non necessaria
-G1 A[#<gradi_finali_asportaz>+360]    F#2     ; forse F#2 non necessaria
+G1 X[#5+#1] A#<gradi_finali_asportaz> F#3     ; forse F#3 non necessaria
+G1 A[#<gradi_finali_asportaz>+360]    F#3     ; forse F#3 non necessaria
 
 o150 endif
 
