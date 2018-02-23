@@ -2,13 +2,18 @@
 ; la versione originale ha i pollici e non i mm 
 o<touch_plate> sub
 G53 G0 Z0
-G53 G0 X-84 Y84
+G53 G0 Y84
+G53 G0 X-84
+
 T0 M6 ; pausa per cambio utensile
 
 G91 ; coordinate relative
-G38.2 Z-20 F200 ; scendi veloce per toccare approssimativamente
+G38.2 Z-27 F200 ; -27 max discesa. Scendi veloce e tocca all'incirca
 G1 Z0.5 F200; torna su di mezzo mm
 G38.2 Z-1 F5 ; scendi piano per toccare precisamente
+G10 L20 P0 Z-4.87 ;azzera la coordinata Z sul sistema coord attivo (G53 ?)
+; 4.87 teorico dovrebbe essere la differenza tra lo Z0 home e la
+; Z piattello touch plate
 G1 Z10 F300 ; torna su di 10 mm
 
 ; versione 1 con zero manuale
@@ -32,4 +37,4 @@ G90 ; coordinate assolute
 
 o<touch_plate> endsub
 ; presa da
-; https://www.youtube.com/watch?v=HvRG91yWNCQ
+; https://www.youtube.com/watch?v=HvRG91yWNCQ minuto 5.22
