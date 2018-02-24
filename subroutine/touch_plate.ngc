@@ -1,26 +1,28 @@
-(touch_plate.ngc)
-; la versione originale ha i pollici e non i mm 
+; presa da
+; https://www.youtube.com/watch?v=HvRG91yWNCQ
+; la versione originale ha i pollici e non i mm
+; 
 o<touch_plate> sub
-G53 G0 Z0
-G53 G0 Y84
-G53 G0 X-84
-
-T0 M6 ; pausa per cambio utensile
-
-G91 ; coordinate relative
-G38.2 Z-27 F200 ; -27 max discesa. Scendi veloce e tocca all'incirca
-G1 Z0.5 F200; torna su di mezzo mm
-G38.2 Z-1 F5 ; scendi piano per toccare precisamente
-G10 L20 P0 Z-4.87 ;azzera la coordinata Z sul sistema coord attivo (G53 ?)
-; 4.87 teorico dovrebbe essere la differenza tra lo Z0 home e la
-; Z piattello touch plate
-G1 Z10 F300 ; torna su di 10 mm
+#<vel_ingresso> = #<_feed> ; salva la velocita attuale
+G53 G0 Z20                 ; si alza al max Z
+G53 G0 X-83 Y83            ; si sposta in angolo alto sinistra
+T0 M6                      ; pausa per cambio utensile
+; 
+G91                        ; coordinate relative
+G38.2 Z-37 F200            ; MAX giu 37? scendi veloce per toccare approssimativamente
+G1 Z0.5                    ; torna su di mezzo mm
+G38.2 Z-1 F5               ; scendi piano per toccare precisamente
+G10 L20 P1 Z-8.9119        ; contatto per Z mandrino (G54 = P1)
+G10 L20 P2 Z-8.9119        ; contatto per Z morsa (G55 = P2)
+G53 G0 Z20                 ; torna su di 20 mm
+G90                        ; coordinate assolute
+F#<vel_ingresso>           ; ripristina velocita ingresso
 
 ; versione 1 con zero manuale
 
 ;F10 G1 Z0 ; giu allo zero vero -0.1 su + 0.08 (20/10 mm) spessore
               ; del touchplate
-G90 ; coordinate assolute
+;G90 ; coordinate assolute
 
 ; versione 2
 ; G90
@@ -36,5 +38,3 @@ G90 ; coordinate assolute
 
 
 o<touch_plate> endsub
-; presa da
-; https://www.youtube.com/watch?v=HvRG91yWNCQ minuto 5.22
