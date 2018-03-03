@@ -1,6 +1,6 @@
 (info: asporta materiale laterale a una barra -- Ctrl-U modifica)
 ; cadr-safe-safe and cddr-safe
-o<tornisci> sub
+o<ditesta> sub
 #<diam_fresa>            =  #1 (= 0.5 mm diam. fresa)
 #<lungh_fresa>           =  #2 (= 5  mm lungh. fresa)
 #<vel_F>                 =  #3 (= 1000 vel mandrino)
@@ -8,7 +8,7 @@ o<tornisci> sub
 #<coord_x1>              =  #4 (= 10.00 1a x, fresa a sx del punto)
 #<lunghezza_asportaz>    =  #5 (= 4.00 lunghezza tornitura)
 
-#<prof_asportaz>         =  #6 (= 0.2 spessore asprtz su X e Z)
+#<prof_asportaz>         =  #6 (= 0.2 spessore asprtz su X)
 #<diam_inizio>           =  #7 (= 12.5 diam barra)
 #<diam_voluto>           =  #8 (= 8.5 diam voluto)
 
@@ -17,8 +17,8 @@ o<tornisci> sub
 #<z_sicura>              = 1
 #<prof_totale_asportaz>  = [#<bordo_barra> - #<z_finale>]    
 #<coord_x2>              = [ABS[#4 + #9]]
-#<giri_da_fare>          = [FIX[#<z_finale> / #6]]
-#<gradi_finali_affondo>  = [#<giri_da_fare> * 360]
+; #<giri_da_fare>          = [FIX[#<z_finale> / #6]]
+; #<gradi_finali_affondo>  = [#<giri_da_fare> * 360]
 #<gradi_finali_asportaz> = [[#<lunghezza_asportaz> / #<prof_asportaz>] * 360]
 
 ;subroutines di verifica inserimento dati corretti
@@ -37,27 +37,16 @@ o10 endif
 
 g54
 G90                                           ; coordinate assolute
-G0 Z#<bordo_barra>                            ; sale dal centro barra al bordo barra
-G0 X#4                                        ; si sposta al punto x1 di tornitura
-G1 Z#<z_finale> A#<gradi_finali_affondo> F#3  ; affonda gradualmente girando il mandrino fino alla prof richiesta
-
-o150 if [#<lunghezza_asportaz> EQ 0]          ; se x1 e x2 sono uguali fermati dopo fatto lo scasso
-o151 call                                     ; chiama la routine di rifinitura
-
-o150 elseif [#<lunghezza_asportaz> GT #1]     ; se non è solo affonda, prosegue asportazione verso X2
-G1 X#<coord_x2> A#<gradi_finali_asportaz>     ; + 360 per fare un giro completo di rifinitura
-o151 call                                     ; chiama la routine di rifinitura
-o150 endif
-
-o151 sub
+G1 Z#<z_finale>                               ; si sposta al diametro voluto (si assume z iniz su centro rotazione)
+G1 X#<coord_x2> A#<gradi_finali_asportaz>     ; asporta di testa
 G91                                           ; coordinate relative
 G1 A360                                       ; + 360 per fare un giro completo di rifinitura
 G92 A0                                        ; azzera i gradi di rotazione
-G90                                           ; coordinate assolute
+G90                                           ; ripristina coordinate assolute
 G0 Z[#<bordo_barra> + #<z_sicura>]            ; torna piu' su  del bordo barra
 G0 X0                                         ; torna all'inizio lavoro
 G0 Z0
-o151 endsub
+
 (MSG, eseguita asportazione)
-o<tornisci> endsub
+o<ditesta> endsub
 M2

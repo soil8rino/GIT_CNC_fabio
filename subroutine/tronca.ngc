@@ -7,18 +7,42 @@ o<tronca> sub
 #<coord_x1>         =  #3 (= 10.00 fresa a sx del punto)
 #<diam_inizio>      =  #4 (= 12.5 diam barra)
 #<prof_asportaz>    =  #5 (= 0.2 una asprtz su Z)
+#<lungh_fresa>      =  #6 (= 13  mm lungh. fresa)
 ;; TODO MANCA LA LUNGHEZZA FRESA potrebbe non bastare
  
 #<bordo_barra>   = [0.5 * #4]  
 #<giri_da_fare>  = [0.5 * #4 / #5]
 #<gradi_finali>  = [#<giri_da_fare> * 360]
+#<z_sicura>      = 1
+;subroutines di verifica inserimento dati corretti
 
-G90                             ; coordinate assolute
-G0 Z#<bordo_barra>              ; sale dal centro barra al bordo barra
-G0 X[#3 + #1]                   ; si sposta al punto di troncatura
-G1 Z0 A#<gradi_finali>      F#2 ; tronca
-G1 A[#<gradi_finali> + 360] F#2 ; + 360 per fare un giro completo di rifinitura
-G92 A0                          ; azzera i gradi di rotazione
+o10 if [#<prof_totale_asportaz> GT #2] ; non si può raggiungere la profondità di taglio richiesta
+(MSG, fresa troppo corta per la troncatura)
+M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o10 endif
+
+G90                                ; coordinate assolute
+G0 Z#<bordo_barra>                 ; sale dal centro barra al bordo barra
+G0 X[#3 + #1]                      ; si sposta al punto di troncatura
+G1 Z0 A#<gradi_finali>      F#2    ; tronca
+G1 A[#<gradi_finali> + 360]        ; + 360 per fare un giro completo di rifinitura
+G92 A0                             ; azzera i gradi di rotazione
+G0 Z[#<bordo_barra> + #<z_sicura>] ; torna piu' su  del bordo barra
+G0 X0                              ; torna all'inizio lavoro
+G0 Z0
+
+; G91                             ; coordinate relative
+; G0 Z#<bordo_barra>              ; sale dal centro barra al bordo barra
+; G0 X[#3 + #1]                   ; si sposta al punto di troncatura
+; G1 Z-#<bordo_barra> A#<gradi_finali>      F#2 ; tronca
+; G1 A[#<gradi_finali> + 360]     ; + 360 per fare un giro completo di rifinitura
+; G92 A0                          ; azzera i gradi di rotazione
+; G0 Z[#<bordo_barra> + #<z_sicura>] ; torna piu' su  del bordo barra
+; G90                             ; coordinate assolute
+; G0 X0                           ; torna all'inizio lavoro
+; G0 Z0
+
+(MSG, eseguita troncatura)
 
 o<tronca> endsub
 M2

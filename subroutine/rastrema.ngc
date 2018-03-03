@@ -2,15 +2,17 @@
 
 o<rastrema> sub
 #<diam_fresa>    = #1 (= 1 diam. fresa)
-#<vel_F>         = #2 (= 1000 vel mandrino)
-#<x_alta>        = #3 (= 10.00 X punto alto)
-#<x_bassa>       = #4 (= 12.00 X punto basso)
-#<diam_max1>     = #5 (= 3.00 max diam)
-#<diam_min2>     = #6 (= 1.00 min diam)
-#<avanz_x>       = #7 (= 0.20 avanz. X per giro)
+#<lungh_fresa>   = #2 (= 13  mm lungh. fresa)
+#<vel_F>         = #3 (= 1000 vel mandrino)
 
-#<z_max>         = [0.5 * #5] 
-#<z_min>         = [0.5 * #6] 
+#<x_alta>        = #4 (= 10.00 X punto alto)
+#<x_bassa>       = #5 (= 12.00 X punto basso)
+#<diam_max1>     = #6 (= 3.00 max diam)
+#<diam_min2>     = #7 (= 1.00 min diam)
+#<avanz_x>       = #8 (= 0.20 avanz. X per giro)
+
+#<z_max>         = [0.5 * #6] 
+#<z_min>         = [0.5 * #7] 
 #<z_sicura>      = [1.25 * #<z_max>]
 #<giri_da_fare>  = [ABS[#<z_max> - #<z_min>] / #<avanz_x>]
 #<gradi_finali>  = [#<giri_da_fare> * 360]
@@ -19,17 +21,20 @@ o<rastrema> sub
 
  ; se x_alta è minore di X_bassa inverte le X in modo che la
  ; fresa rimanga alta all'inizio e proceda sempre verso il basso
-o100 if [#3 LT #4]
-   #3 = #4
-   #4 = #3
+o100 if [#4 LT #5]
+   #4 = #5
+   #5 = #4
 o100 endif
 
-G91                                 ; coordinate relative
+G90                                 ; coordinate assolute
 G0 Z#<z_sicura> 
-G1 X#<x_alta> Z#<z_max> F[0.25 * #2]; si sposta al punto x1 di
-G1 Z#<z_min> X#<x_bassa> A#<gradi_finali> F#2
-G1 A[#<gradi_finali> + 360]      F#2
+G1 X#<x_alta> Z#<z_max> F[0.25 * #3]; si sposta al punto x1 di
+G1 Z#<z_min> X#<x_bassa> A#<gradi_finali> F#3
+G1 A[#<gradi_finali> + 360]         ; rifinitura
 G92 A0                              ; azzera i gradi di rotazione
-
+G0 Z#<z_sicura>                     ; torna piu' su 
+G0 X0                               ; torna all'inizio lavoro
+G0 Z0
+(MSG, eseguita rastremazione)
 o<rastrema> endsub
 M2

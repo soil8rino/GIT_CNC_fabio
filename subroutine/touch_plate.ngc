@@ -4,20 +4,29 @@
 ; 
 o<touch_plate> sub
 #<vel_ingresso> = #<_feed> ; salva la velocita attuale
-G53 G0 Z20                 ; si alza al max Z
+G53 G0 Z19                 ; si alza al max Z
+; G53 G0 Z10 su dbox 
 G53 G0 X-83 Y83            ; si sposta in angolo alto sinistra
 T0 M6                      ; pausa per cambio utensile
 ; 
 G91                        ; coordinate relative
-G38.2 Z-37 F200            ; MAX giu 37? scendi veloce per toccare approssimativamente
+G38.2 Z-22 F200            ; MAX giu 37? scendi veloce per toccare approssimativamente
 G1 Z0.5                    ; torna su di mezzo mm
 G38.2 Z-1 F5               ; scendi piano per toccare precisamente
 G10 L20 P1 Z-8.9119        ; contatto per Z mandrino (G54 = P1)
-G10 L20 P2 Z-8.9119        ; contatto per Z morsa (G55 = P2)
-G53 G0 Z20                 ; torna su di 20 mm
-G90                        ; coordinate assolute
+;G10 L20 P2 Z-8.9119       ; contatto per Z morsa (G54 = P1)
+G90                        ; ripristina coordinate assolute
+G53 G0 Z19                 ; torna su di 20 mm
+                        
 F#<vel_ingresso>           ; ripristina velocita ingresso
 
+;G91 ; coordinate relative dbox
+;G38.2 Z-27 F200 ; MAX giu 27scendi veloce per toccare approssimativamente dbox
+;G1 Z0.5 F200; torna su di mezzo mm dbox
+;G38.2 Z-1 F5 ; scendi piano per toccare precisamente dbox
+;G10 L20 P1 Z-8.9119 dbox
+;G1 Z10 F300 ; torna su di 10 mm dbox
+;G90 dbox
 ; versione 1 con zero manuale
 
 ;F10 G1 Z0 ; giu allo zero vero -0.1 su + 0.08 (20/10 mm) spessore
