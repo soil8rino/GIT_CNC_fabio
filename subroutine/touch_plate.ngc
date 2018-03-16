@@ -16,10 +16,10 @@ o<touch_plate> sub
 
 #1001 = 8.650              ; Measured thickness of touch probe
 #1002 = -8.9119            ; offset tra touch plate e centro mandrino
-G53 G0 Z19                 ; si alza al max Z
+G30 Z19                    ; si alza al max Z
 
 ; G53 G0 Z10 su dbox 
-G53 G0 X-83 Y83            ; si sposta in angolo alto sinistra
+G30                        ; si sposta in angolo alto sinistra
 T#1 M6                     ; pausa per cambio utensile
 ; 
 G91                        ; coordinate relative
@@ -40,7 +40,7 @@ G10 L20 P#1 Z#1002         ; touch off/contatto per Z mandrino (G54 = P1)
 G10 L10 P#1 Z#1001         ; G10 L10 scrive dentro la tool table. Gli do la zeta dell'altezza del touchplate
 ; G10 L1 P#1 Z#<_z>        ; G10 L1 scrive i parametri dentro la tooltable. NON capisco la diff con G10 L10
 G43 H#1                    ; carica gli offset appena modificati, legge la tool table
-G53 G0 Z19                 ; torna su di 20 mm
+G30 Z19                    ; torna su di 20 mm
 F#<vel_ingresso>           ; ripristina velocita ingresso
 
 ;G91 ; coordinate relative dbox
