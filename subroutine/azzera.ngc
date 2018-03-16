@@ -1,12 +1,18 @@
 ; programma azzeramento macchina
-; Move to the machine origin.         
-G53 G0 X0 Y0 Z0 A0 
-; Clear the G92 coordinate offset.    
-G92.1
-; Use the G54 coordinate system.      
-G54
-; Set the G54 coordinate system to be identical to the machine  coordinate system. 
-G10 L2 P1 X0 Y0 Z0 A0 
-; Turn off tool offsets.              
-G49
+
+G53 G0 X0 Y0 Z0 A0     ; Move to the machine origin.
+G92.1                  ; Clear the G92 coordinate offset.
+G28.1                  ; azzera i parametri 5161-5166 sulla posiz home
+G53 G0 X-83 Y83 Z19 A0 ; Spostati al cambio utensile
+G30.1                  ; imposta coordinate cambio utensile
+G54                    ; Use the G54 coordinate system.      
+;G10 L2 P1 X0 Y0 Z0 A0 ; Set the G54 coordinate system to be
+                       ; identical to the machine coordinate system.
+G10 L2 P1 X50.00 Y-19.00 Z-9.03 A0
+; la riga sopra imposta la posizione zero di G54, mandrino
+; le righe sotto sono dentro a linuxcnc.var
+; 5221	51.388073
+; 5222	-19.000919
+; 5223	-9.033540
+G49                    ; Turn off tool offsets.              
 M2

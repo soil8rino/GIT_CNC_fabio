@@ -1,0 +1,17 @@
+(=============================| SET P1/G54 HOME but NOT the ANGLE SETTING |=====================)
+(=== 		Copyright 2015 ~ Jerry Rutherford ~ Email: jerryarutherford@gmail.com        ===)
+(===============================================================================================)
+O <home-angle-same> sub
+	M5     			(Stop Spindle)
+	M9     			(Stop Coolant)
+	G17    			(Machine to XY Plane)
+	G21    			(METRIC Mode)
+	G40    			(Cutter Compensation OFF)
+	G90    			(Absolute Movement Mode)
+	G94    			(Speed in Inches per minute)
+	G54    			(Use Coordinate system P1 G54 Default)
+	G49    			(Cancel any tool length compensation)
+	G91.1  			(Arcs set to default units and method)
+	G10 L20 P1 X0 Y0 Z0    	(Set current location to ZERO for X,Y,Z.)
+O <home-angle-same> endsub
+(===============================================================================================)

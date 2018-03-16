@@ -10,6 +10,8 @@ o<subroutine_filetta> sub
 #<F_rifinitura>          = #7 (= 10 vel rifinitura)
 #<verso_sx_dx>           = #8 (= 1 -1 per filetto sinistro)
 #<gradi_ingresso_dolce>  = #9 (= 90)
+#<x_inizio_filetto>      = #10 (= 11 X lato mandrino)
+#<diametro>              = #11 (= 9.82 diametro)
 
 ; TODO procede dal mandrino verso la punta del pezzo INNATURALE
 ; TODO sentire FABIO se sia meglio andare dalla punta verso il mandrino
@@ -33,7 +35,10 @@ M0 ; pausa per verificare che i numeri sopra vadano bene
 ; (DEBUG, valori. X #<_x>: A #<_a>: Z #<_z>)
 ; M0
 
-
+G54
+G0 Z[#11 + 2] ; sale sopra la barra (+2 da cialtrone da migliorare)
+G0 X#10 ; si sposta verso il mandrino per cominciare la filettatura
+G1 Z[0.5* #11] F60 ; scende per iniziare il filetto
  
 o111 repeat [#1] ; #1 è il numero dei principi. continua a riga 59
 ;+++++++++++++++++++++++++++++++++++++++++++++++ 
@@ -82,7 +87,7 @@ o11 endif
     o101 while [#<conta_passaggi> LT #<n_passaggi>] ; esegue routine per un numero intero di passaggi 
          F#6
          ; TODO inserito per avere discesa invece di scalino
-         G0 X0 Z0 A0 ; azzeramento, 
+         ; G0 X0 Z0 A0 ; azzeramento, 
          G1 X-#<x_fine_discesa> Z[-#<prof_asportaz>*#<conta_passaggi>] A#<gradi_fine_discesa> ; scende Z gradualmente
          G1 X[-#3+#<x_fine_discesa>] A[#<gradi_finali>-#<gradi_fine_discesa>] ; non compie tutti i gradi richiesti
          G1 X-#3 Z0 A#<gradi_finali> ; sale gradualmente fino al fondo filetto TODO non chiaro fondo Z o fondo X ?
