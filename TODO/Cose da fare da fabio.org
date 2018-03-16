@@ -41,6 +41,7 @@
 
 ** Configurazioni
 *** TODO La macchina va piano: verifica le velocita' nella configurazione
+    fatto ma sembra che si arrabbi 
 *** TODO Identificare tre fresini con dimensioni: cilindrico, a pallina, per filetti
 
 *** TODO Alzare la home della zeta per non sbattere sulla morsa in mac3mill.ini cambiare in 
@@ -52,7 +53,7 @@
 
 ** Programmazione
 *** TODO fare in modo che tronca dia un corretto diagramma a video 
-
+    
 *** TODO Inserire azzeramento touch plate nel preambolo
 *** TODO Modificare la routine touch_plate in modo che cambi la lunghezza dell'utensile e non il G54 
     http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g43
@@ -61,7 +62,6 @@
 *** TODO lavorare con tabella utensili 
     http://wiki.linuxcnc.org/cgi-bin/wiki.pl?ToolTable
 *** DONE verifica come mai inverte la X e fai una macchina virtuale con icona che punta a dropbox
-
 
 
     archi

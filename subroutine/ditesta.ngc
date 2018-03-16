@@ -16,11 +16,11 @@ o<ditesta> sub
 #<z_finale>              = [0.5 * #8]
 #<z_sicura>              = 1
 #<prof_totale_asportaz>  = [#<bordo_barra> - #<z_finale>]    
-#<coord_x2>              = [ABS[#4 + #9]]
+#<coord_x2>              = [ABS[#4 + #5]]
 ; #<giri_da_fare>          = [FIX[#<z_finale> / #6]]
 ; #<gradi_finali_affondo>  = [#<giri_da_fare> * 360]
 #<gradi_finali_asportaz> = [[#<lunghezza_asportaz> / #<prof_asportaz>] * 360]
-
+T1
 ;subroutines di verifica inserimento dati corretti
 o10 if [#<prof_asportaz> GT #<z_finale>]
 (MSG, RICHIESTA IMPOSSIBILE !! Profondità di asportazione per singolo passaggio maggiore di quella di taglio finale)
@@ -37,7 +37,7 @@ o10 endif
 
 g54
 G90                                           ; coordinate assolute
-G1 Z#<z_finale>                               ; si sposta al diametro voluto (si assume z iniz su centro rotazione)
+G1 Z#<z_finale>  F#3                          ; si sposta al diametro voluto (si assume z iniz su centro rotazione)
 G1 X#<coord_x2> A#<gradi_finali_asportaz>     ; asporta di testa
 G91                                           ; coordinate relative
 G1 A360                                       ; + 360 per fare un giro completo di rifinitura
