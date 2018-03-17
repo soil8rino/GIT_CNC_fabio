@@ -1,0 +1,14 @@
+o<go-to-mach-home> sub
+(-------------------------------------------------------------------------------)
+	G90		(Absolute Mode						) 
+	M5 		(Shut off Spindle					)
+	M9  		(Shut off Coolant					)
+	G21		(Metric Mode						)
+(--- 	Now we will move reference MACHINE P0 locations.	        	)
+	G53 G0 z 10	(Z-Axis to 10mm above magnetic sensor home.		)
+	G53 G0 X0 Y0	(Go to MACH X/Y Home					)
+	G53 G0 Z0	(Go to MACH Z   Home					)
+	G54		(Be sure normal reference P1 is set.			)
+(-------------------------------------------------------------------------------)	
+o<go-to-mach-home> endsub
+

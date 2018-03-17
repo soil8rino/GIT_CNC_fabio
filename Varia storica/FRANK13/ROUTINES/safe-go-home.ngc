@@ -1,0 +1,11 @@
+o<safe-go-home> sub
+(-----------------------------------------------------------------------)
+	G90 G21		( Absolute and METRIC modes.			)
+	M5 		( Shut off Spindle				)
+	M9  		( Shut off Coolant				)
+	G53 G0 z 10	( Z-Axis to 10mm above magnetic sensor home.	)
+	G00 X0 Y0 	( Move over X / Y home point.			)
+	G00 Z0		( Settle into proper Z home.			)
+(-----------------------------------------------------------------------)
+o<safe-go-home> endsub
+

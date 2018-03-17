@@ -1,0 +1,611 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pyvcp>
+<!-- 
+					Custom PyVCP panel here.
+			Modified by Jerry Rutherford - 2016-11-22 - (Frankenlab 1.3)
+-->
+	<!-- ========================================================================== -->
+	<image name="PECK-G83"   		file="./IMAGES/Peck-Drill-G83.png"	/>
+	<image name="BOLT-HOLE"   		file="./IMAGES/Bolt-Hole.png"		/>
+	<image name="STATUS-ACTIVE"   		file="./IMAGES/Status-Bar-Active.png"	/>
+	<image name="STATUS-IDLE"   		file="./IMAGES/Status-Bar-Idle.png"	/>
+	<image name="BAR-DARK"			file="./IMAGES/BAR-DARK.png"		/>
+	<image name="BAR-RED"			file="./IMAGES/BAR-RED.png"		/>
+	<!-- ========================================================================== -->
+	<image name="PROBE-BRK"			file="./IMAGES/PROBE-BRK.png"		/>
+	<image name="PROBE-MAK"			file="./IMAGES/PROBE-MAK.png"		/>
+	<image name="LASER-OFF"			file="./IMAGES/LASER-OFF.png"		/>
+	<image name="LASER-ON"			file="./IMAGES/LASER-ON.png"		/>
+	<!-- ========================================================================== -->
+	<image name="SPACER24"			file="./IMAGES/SPACER24.png"		/>
+	<image name="PROBE-NO"			file="./IMAGES/PROBE-NO.png"		/>
+	<image name="PROBE-NC"			file="./IMAGES/PROBE-NC.png"		/>
+	<image name="TOUCH-NO"			file="./IMAGES/TOUCH-NO.png"		/>
+	<image name="TOUCH-NC"			file="./IMAGES/TOUCH-NC.png"		/>
+	<!-- ========================================================================== -->
+	<image name="TOOL-SET"			file="./IMAGES/Tool-Offset.png"		/>
+	<!-- ========================================================================== -->
+<tabs>
+<names> ["MAIN","PECK", "BOLT", "P1", "P2", "P3","*"]</names>
+<vbox>
+	<!-- ========================================================================== -->
+	<label>	
+		<relief>RAISED</relief>
+		<bd>2</bd>
+		<text>"MAIN MENU"</text>
+		<font>("Helvetica",8)</font>
+		<bg>"#000000"</bg>
+		<fg>"#ffffff"</fg>
+	</label>
+	<!-- ========================================================================== -->
+        <hbox>
+	<image_bit halpin="PROBE-STAT" images="PROBE-NC PROBE-NO"/>
+        <relief>RAISED</relief>         
+        <bd>1</bd>
+	<meter>			<!-- This is our fancy RPM meter with three zones	-->
+    		<halpin>"spindle-speed"</halpin>
+    		<text>"RPM"</text>		<!-- BIG TEXT on meter 			-->
+    		<subtext>"SPINDLE"</subtext>	<!-- LITTLE TEXT on meter 		-->
+    		<size>200</size>		<!-- Meter display size in px 		-->
+    		<min_>0</min_>			<!-- Meter smallest number 		-->
+    		<max_>20000</max_>		<!-- Meter largest number 		-->
+    		<majorscale>2500</majorscale>	<!-- Meter big RPM tick marks 		-->
+    		<minorscale>500</minorscale>	<!-- Meter little RPM tick marks 	-->
+		<!-- The color regions go right to left... just get used to it. 	-->
+		<region1>(12500,20000,"#B22222")</region1>
+		<region2>(2500,12000,"#32CD32")</region2>
+		<region3>(1000,2499,"#20B2AA")</region3>
+	</meter>
+	<image_bit halpin="TOUCH-STAT" images="TOUCH-NC TOUCH-NO"/>
+        </hbox>
+	<!-- ========================================================================== -->
+	<vbox>
+            <relief>RAISED</relief>
+            <bd>2</bd>
+            <scale>
+                <font>("Helvetica",8)</font>
+                <fg>"#000000"</fg>
+                <bg>"#BBBBBB"</bg>
+                <halpin>"jog-speed"</halpin>
+                <orient>HORIZONTAL</orient>
+                <resolution>1</resolution>
+                <initval>1000</initval>
+                <min_>1</min_>
+                <max_>2500</max_>
+            </scale>        
+            <label>    <!-- the jog speed slider -->
+                <text>"Jog Speed"</text>
+                <font>("Helvetica",8)</font>
+                <fg>"#000000"</fg>
+                <bg>"#BBBBBB"</bg>
+            </label>
+        </vbox>
+
+	<!-- ========================================================================== -->
+	<image_bit halpin="MACH-STATUS" images="STATUS-IDLE STATUS-ACTIVE"/>
+	<!-- ========================================================================== -->
+
+        <hbox>    <!-- the X jog buttons -->
+            <relief>RAISED</relief>
+            <bd>2</bd>
+        <button>
+            <padx>9</padx>
+            <width>14</width>
+            <font>("Helvetica",10)</font>
+            <halpin>"x-minus"</halpin>
+            <wraplength>"250"</wraplength>
+            <text>"X -\nLEFT"</text>
+            <fg>"#FFFFFF"</fg>
+            <bg>"#339933"</bg>
+        </button>
+        <button>
+            <padx>9</padx>
+            <width>14</width>
+            <font>("Helvetica",10)</font>
+            <halpin>"x-plus"</halpin>
+            <text>"X +\nRIGHT"</text>
+            <wraplength>"250"</wraplength>
+            <fg>"#FFFFFF"</fg>
+            <bg>"#339933"</bg>
+        </button>
+        </hbox>
+    	<!-- ========================================================================== -->
+        <hbox>    <!-- the Y jog buttons -->
+            <relief>RAISED</relief>
+            <bd>2</bd>
+        <button>
+            <padx>9</padx>
+            <width>14</width>
+            <font>("Helvetica",10)</font>
+            <halpin>"y-minus"</halpin>
+            <text>"Y -\nFORWARD"</text>
+            <wraplength>"250"</wraplength>
+            <fg>"#FFFFFF"</fg>
+            <bg>"#993333"</bg>
+        </button>
+        <button>
+            <padx>9</padx>
+            <width>14</width>
+            <font>("Helvetica",10)</font>
+            <halpin>"y-plus"</halpin>
+            <text>"Y +\nBACKWARD"</text>
+            <wraplength>"250"</wraplength>
+            <fg>"#FFFFFF"</fg>
+            <bg>"#993333"</bg>
+        </button>
+        </hbox>
+    	<!-- ========================================================================== -->
+        <hbox>    <!-- the Z jog buttons -->
+            <relief>RAISED</relief>
+            <bd>2</bd>
+        <button>
+            <padx>9</padx>
+            <width>14</width>
+            <font>("Helvetica",10)</font>
+            <halpin>"z-minus"</halpin>
+            <text>"Z -\nDOWN"</text>
+            <wraplength>"250"</wraplength>
+            <fg>"#FFFFFF"</fg>
+            <bg>"#222299"</bg>
+        </button>
+        <button>
+            <padx>9</padx>
+            <width>14</width>
+            <font>("Helvetica",10)</font>
+            <halpin>"z-plus"</halpin>
+            <text>"Z +\nUP"</text>
+            <wraplength>"250"</wraplength>
+            <fg>"#FFFFFF"</fg>
+            <bg>"#222299"</bg>
+        </button>
+        </hbox>
+	<!-- ========================================================================== -->
+	<image_bit halpin="MACH-BAR1" images="BAR-DARK BAR-RED"/>
+	<!-- ========================================================================== -->
+
+	<button><!-- SAFE GO HOME BUTTON -->
+		<fg>"#000000"</fg>			
+		<bg>"#F5DEB3"</bg>
+		<font>("Helvetica",8)</font>
+		<halpin>"safe-go-home"</halpin>
+		<text>"G54 SAFE GO HOME"</text>
+	</button>
+	<!-- ========================================================================== -->
+	<button><!-- Set G54 to HOME and RESET Rx Angle to ZERO BUTTON -->
+		<fg>"#000000"</fg>
+		<bg>"#B0C4DE"</bg>
+		<font>("Helvetica",8)</font>
+		<halpin>"home-angle-zero"</halpin>
+		<text>"G54 Set HOME, Angle = ZERO"</text>
+	</button>
+	<!-- ========================================================================== -->
+	<button><!-- Set G54 to HOME and leave Rx Angle the SAME BUTTON -->
+		<fg>"#000000"</fg>
+		<bg>"#BC8F8F"</bg>
+		<font>("Helvetica",8)</font>
+		<halpin>"home-angle-same"</halpin>
+		<text>"G54 Set HOME, Angle = SAME"</text>
+	</button>
+	<!-- ========================================================================== -->
+	<button><!-- Move to MACHINE HOME as set by limit switches -->
+		<fg>"#FFFFFF"</fg>
+		<bg>"#666666"</bg>
+		<font>("Helvetica",8)</font>
+		<halpin>"go-to-mach-home"</halpin>
+		<text>"G53 Go to MACH HOME."</text>
+	</button>
+	<!-- ========================================================================== -->
+	<button><!-- Move to preset G30 location -->
+		<fg>"#FFFFFF"</fg>
+		<bg>"#666666"</bg>
+		<font>("Helvetica",8)</font>
+		<halpin>"go-to-g30"</halpin>
+		<text>"G30 Go to PRESET."</text>
+	</button>
+	<!-- ========================================================================== -->
+	<button><!-- Use TOUCH PLATE to find surface of material -->
+		<fg>"#FFFFFF"</fg>
+		<bg>"#800000"</bg>
+		<font>("Helvetica",8)</font>
+		<halpin>"touch-to-zero"</halpin>
+		<text>"TOUCH PLATE set ZERO."</text>
+	</button>
+	<!-- ========================================================================== -->
+</vbox>	
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ END OF TAB MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ START TAB PECK  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<vbox>
+	<!-- ========================================================================== -->
+	<label>	
+		<relief>RAISED</relief>
+		<bd>2</bd>
+		<text>"PECK DRILLING"</text>
+		<font>("Helvetica",8)</font>
+		<bg>"#000000"</bg>
+		<fg>"#ffffff"</fg>
+	</label>
+	<!-- ========================================================================== -->
+	<!-- This is the start of my automated PECK DRILLING widget -->
+	<table flexible_columns="[1,2]" flexible_rows ="[1,2,3,4,5,6,7,8,9,10]">
+		<tablerow/>
+		<tablespan rows="14"/>
+			<image_bit halpin="PECK-G83-DSP" images="PECK-G83 PECK-G83"/>
+		<tablerow/>
+
+			<spinbox>
+				<!-- Set your MIN / MAX / INITIAL PECK DEPTH -->
+				<width>18</width>
+				<halpin>"peck-z"</halpin>
+				<!-- G21 METRIC MODE Adjusted for POSITIVE numbers -->
+				<min_>000.010</min_> 
+				<max_>150.000</max_>
+				<initval>010.000</initval>
+				<resolution>0.010</resolution>
+				<format>"2.3f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+
+		<tablerow/>
+			<label>
+				<text>"Z - DEPTH"</text>
+				<font>("Helvetica",8)</font>
+				<width>18</width>
+			</label>
+		<tablerow/>
+			<spinbox>
+				<!-- Set your MIN / MAX / INITIAL PECK STEPS -->
+				<width>18</width>
+				<halpin>"peck-q"</halpin>
+				<!-- G21 METRIC MODE -->
+				<min_>000.050</min_>
+				<max_>010.000</max_>
+				<initval>0.100</initval>
+				<resolution>0.010</resolution>
+				<format>"2.3f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+		<tablerow/>
+			<label>
+				<text>"Q - PECK"</text>
+				<font>("Helvetica",8)</font>
+				<width>18</width>
+			</label>
+		<tablerow/>
+			<spinbox>
+				<!-- Set your MIN / MAX / INITIAL PECK FEED RATE -->
+				<width>18</width>
+				<halpin>"peck-f"</halpin>
+				<!-- G21 METRIC MODE -->
+				<min_>000.010</min_>
+				<max_>3000.000</max_>
+				<initval>050.000</initval>
+				<resolution>0.1</resolution>
+				<format>"2.3f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+		<tablerow/>
+			<label>
+				<text>"F - FEED RATE"</text>
+				<font>("Helvetica",8)</font>
+				<width>18</width>
+			</label>
+		<tablerow/>
+
+		<tablerow/>
+			<spinbox>
+				<!-- Set your MIN / MAX / INITIAL PECK SPINDLE SPEED -->
+				<width>18</width>
+				<halpin>"peck-s"</halpin>
+				<min_>0100</min_>
+				<max_>12000</max_>
+				<initval>5000</initval>
+				<resolution>50.0</resolution>
+				<format>"2.3f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+		<tablerow/>
+			<label>
+				<text>"S - SPINDLE SPEED"</text>
+				<font>("Helvetica",8)</font>
+				<width>18</width>
+			</label>
+		<tablerow/>
+		<!-- Just dummy TEXT rows to bring everythng up a bit -->
+		<!-- you know... to make it all pretty.               -->
+		<tablerow/>
+			<label>
+				<text>"HIT ENTER!"</text>
+				<font>("Helvetica",10)</font>
+				<bg>"#005C94"</bg>
+				<fg>"#ffffff"</fg>
+				<width>18</width>
+			</label>
+		<tablerow/>
+		<!-- Table and graphics for PECK DRILL finished.      -->
+		</table>
+		<!-- Need a button to make it call the subroutine.    -->
+		<button>
+			<font>("Helvetica",8)</font>
+			<width>1</width>
+			<halpin>"peck-drill"</halpin>
+			<text>"G83 PECK DRILLING"</text>
+			<bg>"#005C94"</bg>
+			<fg>"#ffffff"</fg>
+		</button>
+		<!-- Instruction message with text wrapping and updates. -->
+		<multilabel>
+			<halpin>"peck-drill-notice"</halpin>
+		    	<legends>["\n INSTRUCTIONS: \n \n After you enter information into the widget above, press the button to start. \n \n There will be a short delay for safety. \n", "\n WARNING: \n \n \n A program is running, please use caution. \n \n \n"]</legends>
+			<wraplength>"250"</wraplength>
+			<justify>"center"</justify>
+			<font>("Helvetica",10)</font>
+			<bg>"#000000"</bg>
+			<fg>"#ffffff"</fg>
+			<width>22</width>
+		</multilabel>
+		<!-- This is the end of my automated PECK DRILLING widget --> 
+</vbox>
+    	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ END OF TAB PECK ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ START TAB BOLT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<vbox>
+	<!-- ========================================================================== -->
+	<label>	
+		<relief>RAISED</relief>
+		<bd>2</bd>
+		<text>"BOLT HOLES"</text>
+		<font>("Helvetica",8)</font>
+		<bg>"#000000"</bg>
+		<fg>"#ffffff"</fg>
+	</label>
+	<!-- ========================================================================== -->
+	<image_bit halpin="MK-BOLT-HOLE" 	images="BOLT-HOLE BOLT-HOLE"		/>
+		<hbox>	
+			<spinbox>
+				<width>16</width>
+				<halpin>"bolt-l"</halpin>
+				<min_>3</min_> 
+				<max_>100</max_>
+				<initval>3</initval>
+				<resolution>1</resolution>
+				<format>"2.0f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+			<label>
+				<text>"NUMBER OF HOLES"</text>
+				<font>("Helvetica",8)</font>
+				<width>22</width>
+				<bg>"#000000"</bg>
+				<fg>"#ffffff"</fg>
+			</label>
+		</hbox>
+		<hbox>	
+			<spinbox>
+				<width>16</width>
+				<halpin>"bolt-i"</halpin>
+				<min_>005.000</min_> 
+				<max_>100.000</max_>
+				<initval>010.000</initval>
+				<resolution>0.001</resolution>
+				<format>"2.3f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+			<label>
+				<text>"RADIUS"</text>
+				<font>("Helvetica",8)</font>
+				<width>22</width>
+				<bg>"#000000"</bg>
+				<fg>"#ffffff"</fg>
+			</label>
+		</hbox>
+		<hbox>	
+			<spinbox>
+				<width>16</width>
+				<halpin>"bolt-z"</halpin>
+				<!-- G21 METRIC MODE Adjusted for POSITIVE numbers -->
+				<min_>000.050</min_> 
+				<max_>200.000</max_>
+				<initval>005.000</initval>
+				<resolution>0.001</resolution>
+				<format>"2.3f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+			<label>
+				<text>"Z FINAL DEPTH"</text>
+				<font>("Helvetica",8)</font>
+				<width>22</width>
+				<bg>"#000000"</bg>
+				<fg>"#ffffff"</fg>
+			</label>
+		</hbox>
+		<hbox>	
+			<spinbox>
+				<width>16</width>
+				<halpin>"bolt-q"</halpin>
+				<!-- G21 METRIC MODE -->
+				<min_>000.100</min_> 
+				<max_>010.000</max_>
+				<initval>001.000</initval>
+				<resolution>0.001</resolution>
+				<format>"2.3f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+			<label>
+				<text>"PECK INCREMENT"</text>
+				<font>("Helvetica",8)</font>
+				<width>22</width>
+				<bg>"#000000"</bg>
+				<fg>"#ffffff"</fg>
+			</label>
+		</hbox>
+		<hbox>	
+			<spinbox>
+				<width>16</width>
+				<halpin>"bolt-f"</halpin>
+				<!-- G21 METRIC MODE -->
+				<min_>005.000</min_> 
+				<max_>900.000</max_>
+				<initval>100.000</initval>
+				<resolution>0.001</resolution>
+				<format>"2.3f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+			<label>
+				<text>"FEED RATE"</text>
+				<font>("Helvetica",8)</font>
+				<width>22</width>
+				<bg>"#000000"</bg>
+				<fg>"#ffffff"</fg>
+			</label>
+		</hbox>
+		<hbox>	
+			<spinbox>
+				<width>16</width>
+				<halpin>"bolt-s"</halpin>
+				<min_>100</min_> 
+				<max_>16000</max_>
+				<resolution>100</resolution>
+				<initval>3000</initval>
+				<format>"2.0f"</format>
+				<font>("Helvetica",8)</font>
+				<param_pin>1</param_pin>
+			</spinbox>
+			<label>
+				<text>"SPINDLE SPEED"</text>
+				<font>("Helvetica",8)</font>
+				<width>22</width>
+				<bg>"#000000"</bg>
+				<fg>"#ffffff"</fg>
+			</label>
+		</hbox>
+
+		<button>
+			<font>("Helvetica",8)</font>
+			<width>1</width>
+			<halpin>"bolt-hole"</halpin>
+			<text>"MAKE BOLT HOLES"</text>
+			<bg>"#005C94"</bg>
+			<fg>"#ffffff"</fg>
+		</button>
+		<!-- Instruction message with text wrapping and updates. -->
+		<multilabel>
+			<halpin>"bolt-hole-notice"</halpin>
+		    	<legends>["\n INSTRUCTIONS: \n \n After you enter information into the widget above, press the button to start. \n \n There will be a short delay for safety. \n", "\n WARNING: \n \n \n A program is running, please use caution. \n \n \n"]</legends>
+			<wraplength>"250"</wraplength>
+			<justify>"center"</justify>
+			<font>("Helvetica",10)</font>
+			<bg>"#000000"</bg>
+			<fg>"#ffffff"</fg>
+			<width>22</width>
+		</multilabel>
+</vbox>
+    	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ END OF TAB BOLT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ START OF TAB P1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<vbox>
+	<!-- ========================================================================== -->
+	<label>	
+		<relief>RAISED</relief>
+		<bd>2</bd>
+		<text>"TOUCH PROBE"</text>
+		<font>("Helvetica",8)</font>
+		<bg>"#000000"</bg>
+		<fg>"#ffffff"</fg>
+	</label>
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ Start Tool Offset ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<image_bit halpin="TOOL-SET" images="TOOL-SET TOOL-SET"/>
+	<hbox>
+		<spinbox>
+			<width>16</width>
+			<halpin>"tool-number"</halpin>
+			<min_>000</min_> 
+			<max_>999</max_>
+			<initval>1</initval>
+			<resolution>1</resolution>
+			<format>"2.0f"</format>
+			<font>("Helvetica",8)</font>
+			<param_pin>1</param_pin>
+		</spinbox>
+		<label>
+			<text>"TOOL NUMBER"</text>
+			<font>("Helvetica",8)</font>
+			<width>22</width>
+			<bg>"#000000"</bg>
+			<fg>"#ffffff"</fg>
+		</label>
+	</hbox>
+	<button>
+		<font>("Helvetica",8)</font>
+		<width>1</width>
+		<halpin>"tool-offset"</halpin>
+		<text>"PROBE TO OFFSET"</text>
+		<bg>"#005C94"</bg>
+		<fg>"#ffffff"</fg>
+	</button>
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ End Tool Offset   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<!-- ========================================================================== -->
+</vbox>
+    	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ END OF TAB P1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ START OF TAB P2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<vbox>
+	<!-- ========================================================================== -->
+	<label>	
+		<relief>RAISED</relief>
+		<bd>2</bd>
+		<text>"PROBE ROUTINES #1"</text>
+		<font>("Helvetica",8)</font>
+		<bg>"#000000"</bg>
+		<fg>"#ffffff"</fg>
+	</label>
+	<!-- ========================================================================== -->
+</vbox>
+    	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ END OF TAB P2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ START OF TAB P3 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<vbox>
+	<!-- ========================================================================== -->
+	<label>	
+		<relief>RAISED</relief>
+		<bd>2</bd>
+		<text>"PROBE ROUTINES #2"</text>
+		<font>("Helvetica",8)</font>
+		<bg>"#000000"</bg>
+		<fg>"#ffffff"</fg>
+	</label>
+	<!-- ========================================================================== -->
+</vbox>
+    	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ END OF TAB P3 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->	
+
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ START OF TAB P4 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+<vbox>
+	<!-- ========================================================================== -->
+	<label>	
+		<relief>RAISED</relief>
+		<bd>2</bd>
+		<text>"CNC DEMO ROUTINES"</text>
+		<font>("Helvetica",8)</font>
+		<bg>"#000000"</bg>
+		<fg>"#ffffff"</fg>
+	</label>
+	<!-- ========================================================================== -->
+</vbox>
+    	<!-- ~~~~~~~~~~~~~~~~~~~~~~~ END OF TAB P4 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+</tabs>
+</pyvcp>
+
+

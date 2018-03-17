@@ -1,0 +1,10 @@
+o<go-to-g30> sub
+(-----------------------------------------------------------------------)
+	G90 G21		( Absolute and METRIC modes.			)
+	M5 		( Shut off Spindle				)
+	M9  		( Shut off Coolant				)
+	G53 G0 z 10	( Z-Axis to 10mm above magnetic sensor home.	)
+	G30 		( Move to preset coordinate for G30		)
+(-----------------------------------------------------------------------)
+o<go-to-g30> endsub
+

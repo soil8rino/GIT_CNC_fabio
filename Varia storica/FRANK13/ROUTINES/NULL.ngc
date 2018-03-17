@@ -1,0 +1,4 @@
+(Just a NULL file to clear the screen)
+G21	(Metric)
+G90	(Absolute)
+M2

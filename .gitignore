@@ -1,0 +1,14 @@
+# Escludi questi file e directory dal subversionamento
+Varia storica/mach3ita.pdf
+*.ngc~
+*.ngc\#
+*\#
+*~
+*.bak
+*tar.gz
+*.html
+*.png
+*.jpeg
+*.jpg
+nello/*
+\$\#*

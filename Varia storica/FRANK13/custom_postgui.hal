@@ -1,0 +1,62 @@
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# --- CUSTOM HAL FILE - This is where you add additional information used
+# ---                   to configure the machine, connect signals and pins
+# ---                   and activate advanced functions.
+# --------------------------------------------------------------------------------------------------
+# The commands in this file are run AFTER the AXIS GUI and PyVCP panel starts.
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# 	Setup of spindle speed display using pyvcp -START
+#  	Use COMMANDED spindle velocity from LinuxCNC because no spindle encoder was specified
+#  	COMANDED velocity is signed so we use absolute component (abs.0) to remove sign
+	net spindle-cmd => abs.0.in
+	net absolute-spindle-vel <= abs.0.out => pyvcp.spindle-speed
+# --------------------------------------------------------------------------------------------------
+# 	Force spindle at speed indicator true because we have no feedback
+	sets spindle-at-speed true
+# --------------------------------------------------------------------------------------------------
+# connect the X PyVCP buttons
+
+	net panel-jogxminus halui.jog.0.minus <= pyvcp.x-minus
+	net panel-jogxplus halui.jog.0.plus <= pyvcp.x-plus
+
+# --------------------------------------------------------------------------------------------------
+# connect the Y PyVCP buttons
+
+	net panel-jogyminus halui.jog.1.minus <= pyvcp.y-minus
+	net panel-jogyplus halui.jog.1.plus <= pyvcp.y-plus
+
+# --------------------------------------------------------------------------------------------------
+# connect the Z PyVCP buttons
+
+	net panel-jogzminus halui.jog.2.minus <= pyvcp.z-minus
+	net panel-jogzplus halui.jog.2.plus <= pyvcp.z-plus
+
+# --------------------------------------------------------------------------------------------------
+# connect the PyVCP jog speed slider
+
+	net panel-jogspeed halui.jog-speed <= pyvcp.jog-speed-f
+
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# Set up Routine Handling Stuff - PANEL BUTTONS to ROUTINES links here.
+# --------------------------------------------------------------------------------------------------
+
+	net panel-safe-go-home    	<= halui.mdi-command-00 	<= pyvcp.safe-go-home
+	net panel-home-angle-zero    	<= halui.mdi-command-01 	<= pyvcp.home-angle-zero
+	net panel-home-angle-same    	<= halui.mdi-command-02 	<= pyvcp.home-angle-same
+	net panel-peck-drill		<= halui.mdi-command-03		<= pyvcp.peck-drill
+	net panel-bolt-hole		<= halui.mdi-command-04		<= pyvcp.bolt-hole
+	net panel-go-to-mach-home	<= halui.mdi-command-05		<= pyvcp.go-to-mach-home
+	net panel-touch-to-zero		<= halui.mdi-command-06		<= pyvcp.touch-to-zero
+	net panel-go-to-g30		<= halui.mdi-command-07		<= pyvcp.go-to-g30
+	net panel-tool-offset		<= halui.mdi-command-08		<= pyvcp.tool-offset
+
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+# Let's link some graphics pins to some machine pins to make it interesting.
+
+	net panel-MACH-STATUS  		<= halui.machine.is-on		=> pyvcp.MACH-STATUS
+	net panel-MACH-BAR1		<= halui.program.is-running	=> pyvcp.MACH-BAR1
+	net probe-in			=> pyvcp.TOUCH-STAT
+	net probe-in			=> pyvcp.PROBE-STAT
+# --------------------------------------------------------------------------------------------------
+

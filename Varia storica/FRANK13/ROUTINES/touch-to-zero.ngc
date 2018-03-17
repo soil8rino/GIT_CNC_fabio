@@ -1,0 +1,9 @@
+o<touch-to-zero> sub
+G91 G21				( Realitive METRIC Mode)
+G38.4 Z-15 F100 		( Move DOWN, assume no contact at start, machine reading "probe tripped" )
+G0 z1				( Pop up 1mm )
+G38.4 Z-10 F10			( Back Down 1/10 speed )
+G10 L20 P1 Z 8.650		( Register the surface as 0 + thickness of plate )
+G90 G21				( Back to Absolute Metric Mode )
+G0 z10				( Go up 10mm real units. )
+o<touch-to-zero> endsub
