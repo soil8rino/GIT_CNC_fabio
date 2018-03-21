@@ -50,6 +50,7 @@
     HOME_SEARCH_VEL = 20.000000
 *** TODO Asse A cambiare in [AXIS_#]WRAPPED_ROTARY=1 
     http://wiki.linuxcnc.org/cgi-bin/wiki.pl?WrappedRotaryAxes
+*** TODO fare il git config come sul portatile
 
 ** Programmazione
 *** TODO fare in modo che tronca dia un corretto diagramma a video 
