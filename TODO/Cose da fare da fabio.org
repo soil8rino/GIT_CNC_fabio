@@ -12,7 +12,6 @@
 
 
 ** Hardware
-   joypad
 
 
 **  Installazioni
@@ -39,6 +38,7 @@
 *** DONE verificare mm in assi xyz
 
 
+
 ** Configurazioni
 *** TODO La macchina va piano: verifica le velocita' nella configurazione
     fatto ma sembra che si arrabbi 
@@ -50,6 +50,9 @@
     HOME_SEARCH_VEL = 20.000000
 *** TODO Asse A cambiare in [AXIS_#]WRAPPED_ROTARY=1 
     http://wiki.linuxcnc.org/cgi-bin/wiki.pl?WrappedRotaryAxes
+
+*** TODO Mettere sotto GIT la dir di Fabio e smettere con dropbox
+*** TODO DIPANARE CON MDI E QUADERNINO il G38.2 G38.4
 
 ** Programmazione
 *** TODO fare in modo che tronca dia un corretto diagramma a video 
