@@ -99,4 +99,4 @@ net tool-number iocontrol.0.tool-prep-number => hal_manualtoolchange.number
 net tool-prepare-loopback iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
 
 # for remote joypad
-# loadusr -W hal_input -KRAL Microntek
+loadusr -W hal_input -KRAL Microntek

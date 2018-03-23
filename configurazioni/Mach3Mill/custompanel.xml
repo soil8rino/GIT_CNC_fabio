@@ -28,4 +28,20 @@
                     </led>
                 </hbox>
         </vbox>
+<button>
+     <halpin>"touch_plate"</halpin>
+     <text>"Vai al cambio utensile"</text> 
+     <font>('Fixed',14)</font>
+ </button> 
+
+<button>
+     <halpin>"rapid-to-home"</halpin>
+     <text>"torna a casa G53"</text> 
+     <font>('Fixed',16)</font>
+ </button>  
+<button>
+     <halpin>"go-G54"</halpin>
+     <text>"torna al mandrino G54"</text> 
+     <font>('Fixed',16)</font>
+ </button>  
 </pyvcp>
