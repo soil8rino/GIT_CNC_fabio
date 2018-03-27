@@ -1,0 +1,11 @@
+G55 ; use coordinate system 2
+G0 X0 Y0 Z0
+G1 F2 Z-0.2000
+X1
+Y1
+X0
+Y0
+G0 Z0
+G54 ; use coordinate system 1
+G0 X0 Y0 Z0
+M2

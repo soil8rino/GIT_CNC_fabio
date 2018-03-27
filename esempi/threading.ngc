@@ -1,0 +1,54 @@
+;; Threading with G76 
+;; preso da https://forum.linuxcnc.org/forum/16-stepconf-wizard/28996-configuring-lathe-problem-stepconfig#57063
+;; Speed of 300 is stable and only requires F450 to cut 1.5mm thread
+;; P[itch]
+;; Z[FinalExtent] - Ensure there is an overrun element so that deceleration happens beyond end of thread, 3 mm sufficient in this example
+;; I[ThreadPeakOffset - cant be 0, neg for external pos for internal, if diameter is critical you can add PeakOffset to Diameter to negate this value]
+;; J[FirstCutDepth - positive offset]
+;; R[DepthDegression 1.0 is constant depth 2.0 is constant area 1-2 depth decreases & area increases 2> area decreases]
+;; K[FullThreadDepth positive offset beyond I for root of thread]- Q[CompoundSlideAngle eg 29.5] 
+;; H[SpringPasses at full thread depth] E[TaperAmount in units - normally 0] L[Taper- L0 None L1 entry L2 Exit L3 Both] 
+
+#<_Diameter>=10          ; diametro in mm 40
+#<_Z_LeadIn>=15          ; punto in cui cominciare la filettatura ? 15
+; i due parametri sopra non sono del ciclo G76, filettatura
+#<_Pitch>=3.0            ; G76 P, passo in mm, uguale alla cresta K nei passi metrici 1.5
+#<_Z_Finish>=-5          ; G76 Z, lunghezza della filettatura in mm -15  
+; NOTA. Dal simulatore sembra che la lunghezza finale sia 20 = #<_Z_LeadIn>=15 + #<_Z_Finish>=-5 
+#<_PeakOffset>=-0.001    ; G76 I, valori negativi filetti esterni, positivi filetti interni -0.001
+#<_First_Cut_Depth>=0.01 ; G76 J, profondità della passata iniziale, in mm 1.0
+#<_Depth_Regression>=1.0 ; G76 R, passate successive costanti per 1=prof 2=area 1.0
+#<_ThreadDepth>=3        ; G76 K, profondità finale della cresta della filettatura in mm 1.5
+#<_CompoundSlideAngle>=0 ; G76 Q, 29, 29.5 or 30 fa in modo che la fresa lavori sul fronte di avanzamento ? 0
+#<_Spring_Passes>=2      ; G76 H, n° di passaggi di rifinitura finale  2
+#<_TaperAmount>=0        ; G76 E, lunghezza della eventuale conicità in mm 0
+#<_TaperType>=0          ; G76 L, 0=senza conicità, 1=all'inizio filett, 2=alla fine filett, 3=inizio e fine 0
+
+#<_alim>=1.5  ; valore originale 1.5, 3000 minuti per finire
+#<_veloc>=300  ; velocità di rotazione della fresa, S
+
+G18 ; G18 = assi XZ
+G21 ; G21 in mm, G20 in pollici
+G40 ; turn cutter compensation off.
+G49 ; Cancel Tool Length Compensation
+G54 ; select coordinate system 1 
+G80 ; turns off canned cycles. G76 è un canned cycle
+G95 ; Units per Revolution Mode
+G90 ; absolute distance mode
+G7 ; modalità tornio
+; M101 P3 (SET PULLEY SETTING 3 FOR GOOD TORQUE)
+F[#<_alim>] S[#<_veloc>]
+M3 ; accendi la fresa 
+G4 P2 ; G4 = aspetta per P10 secondi e poi parti
+M7 ; turn mist coolant on. 
+        (GO TO OS DIA AND Z LEAD IN )
+G0 X#<_Diameter> Z#<_Z_LeadIn>
+G76 P#<_Pitch> Z#<_Z_Finish> I#<_PeakOffset> J#<_First_Cut_Depth> R#<_Depth_Regression> K#<_ThreadDepth> Q#<_CompoundSlideAngle> H#<_Spring_Passes> L#<_TaperType>
+G00 X45 ; esci con l'utensile fuori dalla filettatura = come ritirare la torretta del tornio
+
+M9
+M5
+
+G28
+
+M2

@@ -1,0 +1,49 @@
+
+; https://forum.linuxcnc.org/subroutine-library/27513-polar-; preamble
+G20 G17 G40 G49 G64 P0.001 G80 G90 G94 G92.1
+F24
+; named variables used in the program
+#<step-over> = 0.025
+#<circle-dia> = 0.250
+#<x-center> = 2
+#<y-center> = 3
+
+; final path diameter .250
+; step over 0.025
+; .250 / .025 = 10 the number of circles
+; the first move is the step over so subtract 1 from the number of circles
+; .025 / 100 = .00025 the increment for each polar move
+; move to hole location, z down to cut depth
+; set g91 move to y step over
+; set g92 x0 y step over
+G0 Z.1 ; go to safe Z
+G0 X#<x-center> Y#<y-center> ; move to center of hole location
+G92 X0 Y0 ; set the current location as X0 Y0
+
+; !!!! if you copy and paste this to a working machine you might want
+; to turn the spindle on before this step !!!!
+
+G1 Z-0.1 ; move down to cut depth
+G1 Y#<step-over> ; move to start postion, incremental polar moves can't start at X0 Y0
+G91 ; turn on incremental mode
+o100 repeat [900]
+  G1 @0.00025 ^3.6 ; polar move to cut the spiral
+o100 endrepeat
+G3 J-#<circle-dia> ; do a full circle at circle diameter as a clean up cut
+G90 ; turn on absoute mode
+G1 X0 Y0 ; move to the center of the circle
+
+G1 Z-0.2 ; second spiral
+G1 Y#<step-over>
+G91 
+o101 repeat [900]
+  G1 @0.00025 ^3.6
+o101 endrepeat
+G3 J-#<circle-dia>
+G90
+G1 X0 Y0
+
+G0 Z1
+G92.1 ; !!!! cancle the G92 offset
+G0 X0 Y0
+M2

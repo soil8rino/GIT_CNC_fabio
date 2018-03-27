@@ -22,7 +22,7 @@ o<ditesta> sub
 ; #<gradi_finali_affondo>  = [#<giri_da_fare> * 360]
 #<gradi_finali_asportaz> = [[#<lunghezza_asportaz> / #<prof_asportaz>] * 360]
 
-T#1      ; carica l'utensile
+M6 T#1      ; carica l'utensile
 G43 H#1  ; carica gli offset dell'utensile
 
 ; subroutines di verifica inserimento dati corretti
@@ -39,9 +39,12 @@ G43 H#1  ; carica gli offset dell'utensile
 ; M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
 ; o10 endif 
 
-g54                                       ; si assume un contatto X0 su G54 
+
 G90                                       ; coordinate assolute
-G1 X0 Y0 Z0 F[#3/10]                      ; si avvicina al punto di inizio lavoro, assume fresa a sx del pezzo
+G53 G0 Z19                                ; alza la zeta in zona sicura
+g54                                       ; coordinate relative al centro mandrino. Touch off fatto su x prima della lavorazione
+G0 X[#7-6] Y6                             ; si avvicina al punto di inizio lavoro, assume fresa a sx del pezzo
+G1 X#7 Y0 Z#<z_finale> F[#3/10]           ; si accosta al pezzo lentamente
 G1 Z#<z_finale>  F#3                      ; si sposta al diametro voluto (si assume z iniz su centro rotazione)
 G1 X#<coord_x2> A#<gradi_finali_asportaz> ; asporta di testa
 G91                                       ; coordinate relative
@@ -52,6 +55,7 @@ G0 Z[#<bordo_barra> + #<z_sicura>]        ; torna piu' su  del bordo barra
 G0 X0                                     ; torna all'inizio lavoro
 G0 Z0
 G49                                       ; azzera gli offset del fresino
-(MSG, eseguita asportazione)
+G53 G0 Z19                                ; alza la zeta in zona sicura
+(MSG, eseguita asportazione di testa)
 o<ditesta> endsub
 M2

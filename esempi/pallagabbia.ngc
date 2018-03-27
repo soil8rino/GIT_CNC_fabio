@@ -1,0 +1,21 @@
+#1=1.25 (size of box)
+#2=.0625 (cutter radius)
+#3=.125 (size of box bars)
+#4=5 (degrees of resolusion)
+#5=#4 (COUNTER)
+#6=[[#1/2]+#2] (ACTUAL RADIUS OF CIRCLE - CUTTER RADIUS + RADIUS) 
+G01X0Y0F10
+o140 do 
+   #8 = [[SIN[#5]*#6]*SIN[45]] ( X AND Y POSISION)
+   #9 = [0-[[1-COS[#5]]*#6]] (Z HIGHT)
+   G1X[#8]Y[#8]F3 
+   Z[#9]
+   G18 G02 X[0-#8]Z[#9]I[0-#8]K[0-[#9+[#6]]]F5
+   G19 G03 Y[0-#8]Z[#9]J[0-#8]K[0-[#9+[#6]]]
+   G18 G03 X[#8]Z[#9]I[#8]K[0-[#9+[#6]]]
+   G19 G02 Y[#8]Z[#9]J[#8]K[0-[#9+[#6]]]
+   #5=[#5+#4]
+o140 while [#8 LT [#1/2-#2-#3]]
+G1Z1
+X0Y0
+M30

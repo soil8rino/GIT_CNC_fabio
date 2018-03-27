@@ -1,0 +1,123 @@
+; #########################
+; ROUTINE DI TAGLIO SAGOMA
+; #########################
+o<_incidi_sagoma> sub ;square [x0] [y0] [z0] [zr] [f1] [f2]
+        ;cut a 1x1 square
+        ;#1 = z0 = depth of cut
+        ;#2 = zr = retract after cut
+        ;#3 = f1 = feed to cutting depth
+        ;#4 = f2 = feed for square
+        ;assumes already at safety height
+
+G0 X0 Y0
+        ;Can replace the following 4-6 lines with custon code
+;; o<profilomultiplo> call
+G1 Z#1 F#3
+G1 X1 F#4
+G1 Y1
+G1 X0
+G1 Y0
+G0 Z#2
+(DEBUG, sagoma su riga x #9 e colonna y #11 )
+o<_incidi_sagoma> endsub
+
+
+; ###############################
+; ROUTINE DI SPOSTAMENTO LUNGO X
+; ###############################
+o<_sposta_x> sub ;l2r [x0] [y0] [dx] [count] [z0] [zr] [f1] [f2]
+        ;#1 = x0 = least x coordinate
+        ;#2 = y0 = common y coordinate for all squares
+        ;#3 = dx = increment between x coordinates
+        ;#4 = count = number of squares in row
+        ;#5 = z0 = depth of cut
+        ;#6 = zr = retract after cut
+        ;#7 = f1 = feed to cutting depth
+        ;#8 = f2 = feed for square
+        ;cut squares from left to right at constant Y
+;#9 = temporary for count of squares in row
+#9=0
+
+  o210 while [#9 LT #4] ; esegui 210 mentre il conteggio temporaneo #9 è inferiore al numero di repliche sulla riga asse X
+
+  G0 X[#1+#9*#3] Y#2 ; Sposta dove calcolato
+  G92 X0 Y0 ; sposta l'origine degli assi al punto sopra calcolato
+  o<_incidi_sagoma> call [#5] [#6] [#7] [#8] 
+     ; inizia l'incisione coi parametri #5 #6 #7 #8 forniti dalla routine o<_esegui_tutte_incisioni>
+     ; ovvero 
+     ; #5 = z0 = depth of cut
+     ; #6 = zr = retract after cut
+     ; #7 = f1 = feed to cutting depth
+     ; #8 = f2 = feed for square
+  G92.1 ; resetta l'origine degli assi
+
+  #9=[#9+1] ; aumenta il conteggio delle sagome fatte sulle righe asse X
+
+  o210 endwhile ; chiude la 210
+o<_sposta_x> endsub
+
+
+; ###############################
+; ROUTINE DI SPOSTAMENTO LUNGO Y
+; ###############################
+o<_sposta_y> sub ;r2l [x0] [y0] [dx] [count] [z0] [zr] [f1] [f2]
+        ;parameters as for o<_sposta_x> sub
+        ;cut squares from right to left at constant Y
+#9=[#4-1]
+  o310 while [#9 GE 0] ; esegui 310 mentre il conteggio temporaneo #9 è maggiore uguale al numero di repliche sulle colonne asse Y
+
+  G0 X[#1+#9*#3] Y#2
+  G92 X0 Y0
+  o<_incidi_sagoma> call [#5] [#6] [#7] [#8]
+  G92.1
+  #9=[#9-1]; diminuisce di 1 il conteggio colonne fatte
+
+  o310 endwhile
+o<_sposta_y> endsub
+
+
+; ############################
+; ROUTINE PRINCIPALE
+; ############################
+o<_esegui_tutte_incisioni> sub ;squares [x0] [y0] [dx] [dy] [xcount] [ycount] [z0] [zr] [f1] [f2]
+         ;#1 = x0 = least x coordinate
+         ;#2 = y0 = least y coordinate
+         ;#3 = dx = increment between x coordinates
+         ;#4 = dy = increment between y coordinates
+         ;#5 = xcount = number of squares in row
+         ;#6 = ycount = number of rows
+         ;#7 = z0 = depth of cut
+         ;#8 = zr = retract after cut
+         ;#9 = f1 = feed to cutting depth
+         ;#10 = f2 = feed for square
+ ;#11 = temporary for count of rows
+#11=0
+
+ o410 while [#11 LE #6] ; esegui mentre il conteggio righe #11 è inferiore o uguale a #6, numero di righe volute
+    o420 if [[#11 MOD 2] EQ 0] ; esegui se il conteggio righe diviso 2 restituisce resto zero NON HA SENSO !! o si ? numeri dispari ?
+           o<_sposta_x> call [#1] [#2+#11*#4] [#3] [#5] [#7] [#8] [#9] [#10]
+    o420 else 
+           o<_sposta_y> call [#1] [#2+#11*#4] [#3] [#5] [#7] [#8] [#9] [#10]
+    o420 endif
+    #11=[#11+1] ; aumenta di 1 il conteggio righe fatte
+
+ o410 endwhile
+o<_esegui_tutte_incisioni> endsub
+
+; esecuzione della routine di taglio coi parametri definiti nelle routine sopra
+G92.1
+G20
+M3 S1000
+o<_esegui_tutte_incisioni> call [0] [0] [1.5] [1.25] [2] [1] [-1] [1] [12000] [30000]
+         ; i parametri dell'esecuzione finale sono i seguenti
+         ; #1 = x0 = least x coordinate = [0]
+         ; #2 = y0 = least y coordinate = [0]
+         ; #3 = dx = increment between x coordinates = [1.5]
+         ; #4 = dy = increment between y coordinates = [1.25]
+         ; #5 = xcount = number of squares in row = [4]
+         ; #6 = ycount = number of rows = [3]
+         ; #7 = z0 = depth of cut = [-1]
+         ; #8 = zr = retract after cut = [1]
+         ; #9 = f1 = feed to cutting depth = [120]
+         ; #10 = f2 = feed for square = [300]
+M2

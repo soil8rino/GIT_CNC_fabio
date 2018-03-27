@@ -1,0 +1,26 @@
+(http://wiki.linuxcnc.org/cgi-bin/wiki.pl?Example_G-Code_Programs)
+ #1=25(number of teeth)
+ #2=[360/#1](angle to turn chuck)
+ #3=-.1(y clearance)
+ #4=-.05(X start of cut)
+ #5=2.2(X end of cut)
+ #6=0(starting A position)
+ #7=.7(feed rate infeed Y axis)
+ #8=.394(depth of cut)
+ #9=15(feed rate across X axis)
+ G0 X#4 Y#3
+ G0 Z0
+ G0 A0
+ M3 S70 M8 (M3 - start the spindle clockwise at the S speed. M8 - turn flood coolant on. )
+ o200 do (do ....... while e un loop implicito o200 e il nome della subroutine) 
+	G1 Y[#8-.04] F#7
+	G1 X#5 F#9
+	G1 Y#8
+	G1 X#4 F1.5
+	G0 Y#3
+	G0 X#4
+	#6=[#6+#2]
+	G0 A#6
+ o200 while[#6 lt 359.9] (mentre #6 minore di 359.9 gradi)
+ M5 M9 (M5 - stop the spindle. M9 - turn all coolant off. )
+ M2 (M2 - end the program. Pressing cycle start will start the program at the beginning of the file.)
