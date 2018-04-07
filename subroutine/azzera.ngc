@@ -3,16 +3,17 @@
 G53 G0 X0 Y0 Z0 A0     ; Move to the machine origin.
 G92.1                  ; Clear the G92 coordinate offset.
 G28.1                  ; azzera i parametri 5161-5166 sulla posiz home
-G53 G0 X-83 Y83 Z19 A0 ; Spostati al cambio utensile
+G53 G0 X-83 Y83 Z19    ; Spostati al cambio utensile A non considerato ?
 G30.1                  ; imposta coordinate cambio utensile
+; G30 parameters will be used to move the tool when a M6 is programmed if TOOL_CHANGE_AT_G30=1 is in the [EMCIO] section of the ini file.
 G54                    ; Use the G54 coordinate system.      
 ;G10 L2 P1 X0 Y0 Z0 A0 ; Set the G54 coordinate system to be
                        ; identical to the machine coordinate system.
-G10 L2 P1 X50.00 Y-19.00 Z-9.03 A0
+G10 L2 P1 X50.00 Y-21.356 Z-9.03 A0
 ; la riga sopra imposta la posizione zero di G54, mandrino
 ; le righe sotto sono dentro a linuxcnc.var
 ; 5221	51.388073
-; 5222	-19.000919
+; 5222	-19.000919 forse -21.356 al 9 aprile 2018
 ; 5223	-9.033540
 G49                    ; Turn off tool offsets.              
 M2
