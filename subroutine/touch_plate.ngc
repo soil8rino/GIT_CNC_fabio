@@ -11,6 +11,8 @@ o<touch_plate> sub
 ; touchplate conviene usare uno Z0, uguale alle coordinate G53 in modo
 ; da avere la misura assoluta di spostamento
 
+; G30 parameters will be used to move the tool when a M6 is programmed
+; if TOOL_CHANGE_AT_G30=1 is in the [EMCIO] section of the ini file.
 
 #1001 = 22.39           ; Misura da aggiungere alla Z rilevata col touch plate
 #1002 = -8.9119         ; offset tra touch plate e centro mandrino
