@@ -62,10 +62,12 @@ G0 Z#1 ; affonda al centro
 
 o110 while[#<conta_passaggi> LT #3]
 ; fintanto che il contatore passaggi è inferiore ai passaggi richiesti ... 
-#<prof_att_filetto> = [[#5*sqrt[3/[#3-#<conta_passaggi>]]]/2]
+ #<prof_att_filetto> = [[#5*sqrt[3/[#3-#<conta_passaggi>]]]/2]
 ; sopra si calcola una profondita'di asportazione in modo da avere 
 ; un'area costante a ogni passaggio
 ; TODO Migliorare in modo che sia costante il perimetro dell'utensile impegnato in asportazione
+; TODO sotto un tentativo commentato
+; #<prof_att_filetto> = [#5/[#3-#<conta_passaggi>]*sqrt[3]]
 g91
 #<raggio_att_pezzo> = [#<raggio_int_pezzo>+#<prof_att_filetto>]
 G1 X#<raggio_att_pezzo> F[#<velocita>/10] ; avvicinati al bordo piu' piano
