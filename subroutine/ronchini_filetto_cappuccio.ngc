@@ -30,7 +30,7 @@ F#<velocita>
 #<passo_reale>          = [#5*#6]
 #<giri_elicoide>        = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
 #<prof_fin_filetto>     = [0.5 * #5 * sqrt[3]] 
-#<conta_passaggi>       = [#3] ; si definisce un un contatore
+#<conta_passaggi>       = 0 ; si definisce un un contatore
 
 ;___________Contatori__________
 ; #<n_cerchi_interni>     = [#<raggio_int_pezzo>/#<raggio_fresa>]
@@ -60,10 +60,9 @@ G0 X0 Y0
 G0 Z#1 ; affonda al centro
 
 
-o110 while[#<conta_passaggi> GT 0]; fintanto che il contatore passaggi è > di zero ... 
-; TODO: trovare il modo di affondare tanto inizialmente e poco in fondo
-; TODO: perchè all'inizio c'e' poco materiale da asportare e in fondo tanto
-#<prof_att_filetto> = [sqrt[[#5/2]^2 *[#3 - #<conta_passaggi>]/2]] 
+o110 while[#<conta_passaggi> LT #3]
+; fintanto che il contatore passaggi è inferiore ai passaggi richiesti ... 
+#<prof_att_filetto> = [#5*sqrt[3*[#3-#<conta_passaggi>]]/2]
 g91
 #<raggio_att_pezzo> = [#<raggio_att_pezzo>+#<prof_att_filetto>]
 G0 X#<raggio_att_pezzo>
@@ -118,7 +117,7 @@ g90
              G0 X0 Y0
              G0 Z#1            
        o112 endif  ; fine routine filettatura dx
-#<conta_passaggi> = [#<conta_passaggi>-1] ; diminuisce di uno il contatore di passaggi
+#<conta_passaggi> = [#<conta_passaggi>+1] ; aumenta di uno il contatore di passaggi
 o110 endwhile
 ; torna a casa
 G0 X0 Y0
