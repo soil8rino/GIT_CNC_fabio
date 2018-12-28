@@ -63,8 +63,9 @@ G0 Z#1 ; affonda al centro
 o110 while[#<conta_passaggi> GT 0]; fintanto che il contatore passaggi è > di zero ... 
 ; TODO: trovare il modo di affondare tanto inizialmente e poco in fondo
 ; TODO: perchè all'inizio c'e' poco materiale da asportare e in fondo tanto
+#<prof_att_filetto> = [sqrt[[#5/2]^2 *[#3 - #<conta_passaggi>]/2]] 
 g91
-#<raggio_att_pezzo> = [#<raggio_att_pezzo>+#<prof_fin_filetto>/#3]
+#<raggio_att_pezzo> = [#<raggio_att_pezzo>+#<prof_att_filetto>]
 G0 X#<raggio_att_pezzo>
 g90
 
