@@ -30,9 +30,9 @@ F#<velocita>
 #<passo_reale>          = [#5*#6]
 #<giri_elicoide>        = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
 #<prof_fin_filetto>     = [0.5 * #5 * sqrt[3]] 
-#<conta_passaggi>       = 0 ; si definisce un un contatore
 
 ;___________Contatori__________
+#<conta_passaggi>       = 0 ; si definisce un un contatore
 ; #<n_cerchi_interni>     = [#<raggio_int_pezzo>/#<raggio_fresa>]
 ; #<n_cerchio_attuale>    = #<n_cerchi_interni>
 
@@ -62,15 +62,18 @@ G0 Z#1 ; affonda al centro
 
 o110 while[#<conta_passaggi> LT #3]
 ; fintanto che il contatore passaggi è inferiore ai passaggi richiesti ... 
-#<prof_att_filetto> = [#5*sqrt[3*[#3-#<conta_passaggi>]]/2]
+#<prof_att_filetto> = [[#5*sqrt[3/[#3-#<conta_passaggi>]]]/2]
+; sopra si calcola una profondita'di asportazione in modo da avere 
+; un'area costante a ogni passaggio
+; TODO Migliorare in modo che sia costante il perimetro dell'utensile impegnato in asportazione
 g91
-#<raggio_att_pezzo> = [#<raggio_att_pezzo>+#<prof_att_filetto>]
-G0 X#<raggio_att_pezzo>
+#<raggio_att_pezzo> = [#<raggio_int_pezzo>+#<prof_att_filetto>]
+G1 X#<raggio_att_pezzo> F[#<velocita>/10] ; avvicinati al bordo piu' piano
 g90
 
-
+F#<velocita> ; riprendi la velocita di lavoro
 ; routine per filettatura interna dx.
- (MSG, esecuzione filettatura interna destra)
+(MSG, esecuzione filettatura interna destra)
 ; questa parte sotto si occupa del numero di principi
 ; ovvero di spostare il punto iniziale intorno alla circonferenza interna
 ; coordinate polari. @n è la distanza e ^n è l'angolo
