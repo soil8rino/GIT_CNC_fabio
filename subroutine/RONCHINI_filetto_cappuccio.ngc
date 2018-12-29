@@ -1,5 +1,5 @@
 (info: IN FIERI testina filettata -- Ctrl-U modifica)
-o<filetto_cappuccio> sub
+o<RONCHINI_filetto_cappuccio> sub
 
 #<prof_iniz_filetto>   =  #1 (= 4 prof iniz filetto)
 #<diam_int>   =  #2 (= 6.2 diam int)
@@ -22,9 +22,9 @@ F#<velocita>
 #<raggio_attuale_pezzo> = #<raggio_int_pezzo>
 ;___________Profondita_________
 #<z_sicura>             = 1
-#<z_ext>                = [-#3]
-#<z_prof>               = [-#4]
-#<lunghezza_filetto>    = [#4-#1]
+#<z_ext>                = [#3]
+#<z_prof>               = [#4]
+#<lunghezza_filetto>    = [#4+#1]
 
 ;___________Filettatura________
 #<passo_reale>          = [#5*#6]
@@ -47,6 +47,10 @@ o11 if [#6 GT 4 OR #6 LT 1]; fermati e avverti
  M2
 o11 endif
 
+o12 if [#9+0.5 GT #2]; fermati e avverti #9 diam fresa #2 diam foro
+ (MSG, Fresa troppo larga per il lavoro ! )
+ M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o12 endif
 
 ;G53 G0 X0 Y0 Z0 ;move to the position
 ;G28.1 ;store the current absolute position in the variables
@@ -63,7 +67,7 @@ o11 endif
 ; G0 Z#<z_sicura>
 ; spostamento alla periferia interna
 G0 X0 Y0 Z0
-G0 Z-#1
+G0 Z#1
 ;G0 X#<raggio_int_pezzo> Y0 
 ; affonda interno
 ;G1 Z#<z_prof>
@@ -97,11 +101,11 @@ g90
 (DEBUG, #<raggio_int_pezzo> #<prof_filetto>)
              G2 I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide>
              G0 X0 Y0
-             G0 Z-#1  
+             G0 Z#1  
         o112 elseif [#6 EQ 2]
              G2 I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
              G0 X0 Y0
-             G0 Z-#1  
+             G0 Z#1  
              ; coordinate polari, si sposta di un diametro
              G1 @[#<raggio_int_pezzo>] ^180
              (MSG, esecuzione secondo filetto interno)
@@ -109,27 +113,27 @@ g90
         o112 elseif [#6 EQ 3]
              G2 I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
              G0 X0 Y0
-             G0 Z-#1
+             G0 Z#1
              G1 @[#<raggio_int_pezzo>] ^120 
 ; TODO da rivedere i parametri I e J del secondo e trezo filetto OK piazzamento troppo grande diametro
              G2 I[-cos[120]*#<raggio_int_pezzo>] J[-sin[120]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>              
              G0 X0 Y0 
-             G0 Z-#1
+             G0 Z#1
              G1 @[#<raggio_int_pezzo>] ^240 
              G2 X#<_x> Y#<_y> I[-cos[240]*#<raggio_int_pezzo>] J[-sin[240]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>
         o112 elseif [#6 EQ 4]
              G2  I[-#<raggio_int_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
              G0 X0 Y0
-             G0 Z-#1
+             G0 Z#1
              G1 @[#<raggio_int_pezzo>] ^90 
 ; TODO da rivedere i parametri I e J del secondo e trezo filetto OK piazzamento troppo grande diametro
              G2  I[-cos[90]*#<raggio_int_pezzo>] J[-sin[90]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>              
              G0 X0 Y0 
-             G0 Z-#1
+             G0 Z#1
              G1 @[#<raggio_int_pezzo>] ^180
              G2  I[-cos[180]*#<raggio_int_pezzo>] J[-sin[180]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>
              G0 X0 Y0
-             G0 Z-#1
+             G0 Z#1
              G1 @[#<raggio_int_pezzo>] ^270 
              G2  I[-cos[270]*#<raggio_int_pezzo>] J[-sin[270]*#<raggio_int_pezzo>] Z#<z_prof> P#<giri_elicoide>              
              (MSG, esecuzione uno dei tre filetti interni)
@@ -162,6 +166,6 @@ g90
 G0 X0 Y0
 G0 Z#<Z_sicura>
 (MSG, pezzo finito)
-o<filetto_cappuccio> endsub
+o<RONCHINI_filetto_cappuccio> endsub
 
 
