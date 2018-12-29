@@ -2,16 +2,17 @@
 o<ronchini_filetto_cappuccio> sub
 
 #<prof_iniz_filetto>   =  #1 (= 4 prof iniz filetto)
-#<diam_int>   =  #2 (= 6.2 diam int)
-#<passaggi>   =  #3 (= 2 passaggi d'asportazione)
+#<diam_int>   =  #2 (= 10 diam int)
+#<passaggi>   =  #3 (= 1 passaggi d'asportazione)
 #<profondita> =  #4 (= 8 profondita)
-#<passo>      =  #5 (= 0.7 passo filetto)
-#<principi>   =  #6 (= 4 principi. Max 4)
+#<passo>      =  #5 (= 0.6 passo filetto)
+#<principi>   =  #6 (= 1 principi. Max 4)
 #<velocita>   =  #7 (= 500 velocita)
 #<verso_elic> =  #8 (= 1  dx 1 sx -1 non serve ora)
-#<diam_fresa> =  #9 (= 2.00 diam tagliente)
+#<diam_fresa> =  #9 (= 1.00 diam tagliente)
 #<lung_fresa> = #10 (= 8.00 lungh fresa)
-
+; COI VALORI DI DEFAULT, a video linux si vede un cerchio di 10 di diametro
+; è dovuto alla combinazione dei valori immessi
 
 ; parametri calcolati dai dati di base
 F#<velocita>
@@ -30,8 +31,8 @@ F#<velocita>
 #<passo_reale>       = [#5*#6]
 #<giri_elicoide>     = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
 #<prof_ini_filetto>  = [ [#5 * sqrt[3]] * [2*sqrt[#3]] ]
-#<prof_att_filetto>  = #<prof_ini_filetto> 
-#<prof_suc_filetto>  = [ [ [ [#5/2]**2 ] * 3 ] / [sqrt[#3]*#<prof_att_filetto>] ]
+; #<prof_att_filetto>  = #<prof_ini_filetto> 
+; #<prof_suc_filetto>  = [ [ [ [#5/2]**2 ] * 3 ] / [sqrt[#3]*#<prof_att_filetto>] ]
 #<prof_fin_filetto>  = [0.5 * #5 * sqrt[3]]
 ; formula sopra https://www.cadem.com/single-post/cnc-threading-depth-of-cut
 
@@ -52,7 +53,8 @@ o11 if [#6 GT 4 OR #6 LT 1]; fermati e avverti
  M2
 o11 endif
 
-o12 if [#9+0.5 GT #2]; fermati e avverti #9 diam fresa #2 diam foro
+o12 if [#9 GT 0.7*#2]; fermati e avverti #9 diam fresa #2 diam foro
+; 0.7 preso da manuale sandvik su mill threading
  (MSG, Fresa troppo larga per il lavoro ! )
  M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
 o12 endif
@@ -66,7 +68,14 @@ G0 Z#1 ; affonda al centro
 
 o110 while[#<conta_passaggi> LT #3]
 ; fintanto che il contatore passaggi è inferiore ai passaggi richiesti ...
- #<prof_att_filetto> = [#<prof_att_filetto> + #<prof_suc_filetto>]
+o1101 if [#3 EQ 1]
+ #<prof_att_filetto> = #<prof_fin_filetto>
+o1101 elseif [#<conta_passaggi> EQ 0 AND #3 GT 1]
+ #<prof_att_filetto>  = #<prof_ini_filetto> 
+o1101 elseif [#<conta_passaggi> GT 0 AND #3 GT 1]
+ #<prof_att_filetto>  = [ [ [ [#5/2]**2 ] * 3 ] / [sqrt[#3]*#<prof_att_filetto>] ]
+; #<prof_att_filetto> = [#<prof_att_filetto> + #<prof_suc_filetto>]
+o1101 endif
 ; sopra si calcola una profondita'di asportazione in modo da avere 
 ; un'area costante a ogni passaggio
 ; TODO Migliorare in modo che sia costante il perimetro dell'utensile impegnato in asportazione
