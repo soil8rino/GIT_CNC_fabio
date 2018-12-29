@@ -1,0 +1,128 @@
+(info: IN FIERI testina filettata -- Ctrl-U modifica)
+o<ronchini_filetto_cappuccio> sub
+
+#<prof_iniz_filetto>   =  #1 (= 4 prof iniz filetto)
+#<diam_int>   =  #2 (= 6.2 diam int)
+#<passaggi>   =  #3 (= 2 passaggi d'asportazione)
+#<profondita> =  #4 (= 8 profondita)
+#<passo>      =  #5 (= 0.7 passo filetto)
+#<principi>   =  #6 (= 4 principi. Max 4)
+#<velocita>   =  #7 (= 500 velocita)
+#<verso_elic> =  #8 (= 1  dx 1 sx -1 non serve ora)
+#<diam_fresa> =  #9 (= 2.00 diam tagliente)
+#<lung_fresa> = #10 (= 8.00 lungh fresa)
+
+
+; parametri calcolati dai dati di base
+F#<velocita>
+
+;___________Raggi______________
+#<raggio_fresa>         = [0.5 * #9]
+#<raggio_int_pezzo>     = [[0.5 * #2]-#<raggio_fresa>]
+#<raggio_att_pezzo> = #<raggio_int_pezzo>
+
+;___________Profondita_________
+#<z_sicura>             = 1
+#<z_prof>               = [#4]
+#<lunghezza_filetto>    = [#4+#1]
+
+;___________Filettatura________
+#<passo_reale>          = [#5*#6]
+#<giri_elicoide>        = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
+#<prof_fin_filetto>     = [0.5 * #5 * sqrt[3]] 
+#<conta_passaggi>       = [#3] ; si definisce un un contatore
+
+;___________Contatori__________
+; #<n_cerchi_interni>     = [#<raggio_int_pezzo>/#<raggio_fresa>]
+; #<n_cerchio_attuale>    = #<n_cerchi_interni>
+
+
+; controlli. messi qui impediscono danni
+o10 if [#3 GT #10 OR #4 GT #10]; fermati e avverti
+ (MSG, Fresa troppo corta per il lavoro ! )
+ M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o10 endif
+
+o11 if [#6 GT 4 OR #6 LT 1]; fermati e avverti
+ (MSG, Sono permessi 1, 2, 3 o 4 principi solamente)
+ M2
+o11 endif
+
+o12 if [#9+0.5 GT #2]; fermati e avverti #9 diam fresa #2 diam foro
+ (MSG, Fresa troppo larga per il lavoro ! )
+ M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
+o12 endif
+
+
+; spostamento cautelare al centro tappo
+G0 Z#<z_sicura>
+G0 X0 Y0 
+G0 Z#1 ; affonda al centro
+
+
+o110 while[#<conta_passaggi> GT 0]; fintanto che il contatore passaggi è > di zero ... 
+; TODO: trovare il modo di affondare tanto inizialmente e poco in fondo
+; TODO: perchè all'inizio c'e' poco materiale da asportare e in fondo tanto
+g91
+#<raggio_att_pezzo> = [#<raggio_att_pezzo>+#<prof_fin_filetto>/#3]
+G0 X#<raggio_att_pezzo>
+g90
+
+
+; routine per filettatura interna dx.
+ (MSG, esecuzione filettatura interna destra)
+; questa parte sotto si occupa del numero di principi
+; ovvero di spostare il punto iniziale intorno alla circonferenza interna
+; coordinate polari. @n è la distanza e ^n è l'angolo
+        o112 if [#6 EQ 1] ;#6 = numero di principi
+             G2 I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide>
+             G0 X0 Y0
+             G0 Z#1  
+        o112 elseif [#6 EQ 2]
+             G2 I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G0 X0 Y0
+             G0 Z#1  
+             ; coordinate polari, si sposta di un diametro
+             G1 @[#<raggio_att_pezzo>] ^180
+             (MSG, esecuzione secondo filetto interno)
+             G2 I[#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G0 X0 Y0
+             G0 Z#1  
+        o112 elseif [#6 EQ 3]
+             G2 I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G0 X0 Y0
+             G0 Z#1
+             G1 @[#<raggio_att_pezzo>] ^120 
+             G2 I[-cos[120]*#<raggio_att_pezzo>] J[-sin[120]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>              
+             G0 X0 Y0 
+             G0 Z#1
+             G1 @[#<raggio_att_pezzo>] ^240 
+             G2 X#<_x> Y#<_y> I[-cos[240]*#<raggio_att_pezzo>] J[-sin[240]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>
+             G0 X0 Y0 
+             G0 Z#1
+        o112 elseif [#6 EQ 4]
+             G2  I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G0 X0 Y0
+             G0 Z#1
+             G1 @[#<raggio_att_pezzo>] ^90 
+             G2  I[-cos[90]*#<raggio_att_pezzo>] J[-sin[90]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>              
+             G0 X0 Y0 
+             G0 Z#1
+             G1 @[#<raggio_att_pezzo>] ^180
+             G2  I[-cos[180]*#<raggio_att_pezzo>] J[-sin[180]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>
+             G0 X0 Y0
+             G0 Z#1
+             G1 @[#<raggio_att_pezzo>] ^270 
+             G2  I[-cos[270]*#<raggio_att_pezzo>] J[-sin[270]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>  
+             G0 X0 Y0
+             G0 Z#1            
+       o112 endif  ; fine routine filettatura dx
+#<conta_passaggi> = [#<conta_passaggi>-1] ; diminuisce di uno il contatore di passaggi
+o110 endwhile
+; torna a casa
+G0 X0 Y0
+G0 Z#<Z_sicura>
+(MSG, pezzo finito)
+o<ronchini_filetto_cappuccio> endsub
+
+
