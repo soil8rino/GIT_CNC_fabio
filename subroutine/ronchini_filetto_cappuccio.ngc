@@ -19,7 +19,7 @@ F#<velocita>
 ;___________Raggi______________
 #<raggio_fresa>         = [0.5 * #9]
 #<raggio_int_pezzo>     = [ [0.5 * #2] - #<raggio_fresa> ]
-#<raggio_att_pezzo> = #<raggio_int_pezzo>
+#<raggio_att_pezzo>     = #<raggio_int_pezzo>
 
 ;___________Profondita_________
 #<z_sicura>             = 1
@@ -27,12 +27,12 @@ F#<velocita>
 #<lunghezza_filetto>    = [#4+#1]
 
 ;___________Filettatura________
-#<passo_reale>          = [#5*#6]
-#<giri_elicoide>        = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
-#<prof_fin_filetto>     = [0.5 * #5 * sqrt[3]]
-#<prof_ini_filetto>     = [ [#5 * sqrt[3]] * [2*sqrt[#3]] ]
-#<prof_suc_filetto>     = [ [ [#5**2] - 2*#5*sqrt[3] ] / [4*sqrt[#3]]
-#<area_ini_filetto>     = [ [ [[#5/2]**2] * sqrt[3]] / sqrt[#3] ]
+#<passo_reale>       = [#5*#6]
+#<giri_elicoide>     = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
+#<prof_ini_filetto>  = [ [#5 * sqrt[3]] * [2*sqrt[#3]] ]
+#<prof_att_filetto>  = #<prof_ini_filetto> 
+#<prof_suc_filetto>  = [ [ [ [#5/2]**2 ] * 3 ] / [sqrt[#3]*#<prof_att_filetto>] ]
+#<prof_fin_filetto>  = [0.5 * #5 * sqrt[3]]
 ; formula sopra https://www.cadem.com/single-post/cnc-threading-depth-of-cut
 
 ;___________Contatori__________
@@ -66,12 +66,7 @@ G0 Z#1 ; affonda al centro
 
 o110 while[#<conta_passaggi> LT #3]
 ; fintanto che il contatore passaggi è inferiore ai passaggi richiesti ...
-o1101 if [#<conta_passaggi> EQ 0]
- #<prof_att_filetto> = #<prof_ini_filetto>
- o1101 else
  #<prof_att_filetto> = [#<prof_att_filetto> + #<prof_suc_filetto>]
-o1101 endif
-
 ; sopra si calcola una profondita'di asportazione in modo da avere 
 ; un'area costante a ogni passaggio
 ; TODO Migliorare in modo che sia costante il perimetro dell'utensile impegnato in asportazione
