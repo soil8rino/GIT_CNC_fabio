@@ -1,14 +1,14 @@
 (info: IN FIERI filettatura interna -- Ctrl-U modifica)
 o<ronchini_filetto_cappuccio> sub
 
-#<inizio_filettatura>   =  #1 (= 4 mm dal bordo tappo)
+#<inizio_filettatura>   =  #1 (= 4 mm sup dal bordo tappo Z0)
 #<diam_int>         =  #2 (= 10 diam interno tappo)
 #<passaggi>         =  #3 (= 1 passaggi d'asportazione)
-#<fine_filettatura> =  #4 (= 8 mm dal bordo tappo)
+#<fine_filettatura> =  #4 (= 8 mm inf dal bordo tappo Z0)
 #<passo>            =  #5 (= 0.6 passo filetto)
 #<principi>         =  #6 (= 1 principi. Max 4)
 #<velocita>         =  #7 (= 500 velocita)
-#<verso_elic>       =  #8 (= 1  dx 1 sx -1 non serve ora)
+#<verso_elic>       =  #8 (= 0  variabile non usata)
 #<diam_fresa>       =  #9 (= 1.00 diam tagliente)
 #<lung_fresa>       = #10 (= 8.00 lungh fresa)
 ; COI VALORI DI DEFAULT, a video linux si vede un cerchio di 10 di diametro
@@ -22,22 +22,27 @@ F#<velocita>
 #<raggio_int_pezzo>     = [ [0.5 * #2] - #<raggio_fresa> ]
 #<raggio_att_pezzo>     = #<raggio_int_pezzo>
 
-;___________Profondita_________
-#<z_sicura>             = 1
-#<z_prof>               = [#4]
-#<lunghezza_filetto>    = [#4+#1]
-
 ;___________Filettatura________
-#3                   = FIX[#3]; cautela contro virgole
-#6                   = FIX[#6]; cautela contro virgole
-#<passo_reale>       = [#5*#6]
-#<giri_elicoide>     = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
+#3                          = FIX[#3]; cautela contro virgole
+#6                          = FIX[#6]; cautela contro virgole
+#<lunghezza_filetto_voluta> = [#4-#1]
+#<passo_reale>              = [#5*#6]
+#<giri_elicoide>            = FIX[[#<lunghezza_filetto_voluta>/#<passo_reale>]]
+; Sopra: arrontonda all'intero inferiore G3 piu' sotto accetta un parametro P come numero intero
 ; MIGLIORA fare un modo da poter fare anche frazioni di elicoide
+#<lunghezza_filetto_ottenibile>    = [#<giri_elicoide>*#<passo_reale>] 
+( MSG, lunghezza voluta e lunghezza ottenibile ) 
+( DEBUG, #<lunghezza_filetto_voluta> #<lunghezza_filetto_ottenibile> )
 #<prof_fin_filetto>  = [0.5 * #5 * sqrt[3]]
 #<prof_ini_filetto>  = [#<prof_fin_filetto>/sqrt[#3]]
 ; la formula sopra trovata su
 ; https://www.cadem.com/single-post/cnc-threading-depth-of-cut
 ; prof_ini_filetto toglie 1/passaggi di area della gola filettata 
+
+;___________Profondita elicoide _________
+#<z_sicura>  = 2
+#<z_prof>    = [#1 + #<lunghezza_filetto_ottenibile>]
+
 
 ;___________Contatori__________
 #<conta_passaggi>       = 1 ; si definisce un un contatore
@@ -45,7 +50,10 @@ F#<velocita>
 
 ; controlli. messi qui impediscono danni
 ; non fa nemmeno vedere il virtuale se la condizione è vera
-o10 if [#3 GT 4 OR #3 LT 1]
+o10 if [#1 GT #4]
+ (MSG, inizio filettatura piu' in basso della sua fine !)
+ M2 
+o10 elseif [#3 GT 4 OR #3 LT 1]
  (MSG, Sono permessi 1, 2, 3 o 4 passaggi solamente)
  M2 
 o10 elseif [#4 GT #10]; fermati e avverti
@@ -58,6 +66,10 @@ o10 elseif [#9 GT 0.7*#2];#9 diam fresa #2 diam foro
 ; 0.7 preso da manuale sandvik su mill threading
  (MSG, Fresa troppo larga per il lavoro ! )
  M2
+; TODO fermare se troppa discrepanza tra voluta e ottnibile
+; o10 elseif [#<lunghezza_filetto_ottenibile> - #<lunghezza_filetto_voluta>]
+; MSG, Troppa differenza tra voluto e ottenibile ! 
+; M2
 o10 endif
 
 ; manovra di avvicinamento al pezzo
@@ -71,15 +83,17 @@ G0 Z#1 ; affonda al centro tappo
 ; un'area costante a ogni passaggio
 ; Si divide l'area asportata in n parti uguali, una per passaggio
 ; Invece di fare calcoli si ricorre ai numeri calcolati empiricamente
-; 1.414 et 1.732 come moltiplicatori del 2° 3° e 4° passaggio
+; 1.414, 1.732 et 2.000 come moltiplicatori del 2° 3° e 4° passaggio
 o110 while[#<conta_passaggi> LE #3]; LE, Lower or Equal
 ; fintanto che il contatore passaggi è inferiore ai passaggi richiesti ...
 o1101 if [#<conta_passaggi> EQ 1]
 #<prof_att_filetto> = #<prof_ini_filetto>
-o1101 elseif [#<conta_passaggi> GT 1 AND LT 4 ]
- #<prof_att_filetto>  = #<prof_ini_filetto> * 1.414]  
-o1101 elseif [#<conta_passaggi> EQ 4]
+o1101 elseif [#<conta_passaggi> EQ 2]
+#<prof_att_filetto>  = [#<prof_ini_filetto> * 1.414]  
+o1101 elseif [#<conta_passaggi> EQ 3]
 #<prof_att_filetto>  = [#<prof_ini_filetto> * 1.732] 
+o1101 elseif [#<conta_passaggi> EQ 4]
+#<prof_att_filetto>  = [#<prof_ini_filetto> * 2.000] 
 o1101 endif
 ; calcolo del raggio effettivo di asportazione
 #<raggio_att_pezzo> = [#<raggio_int_pezzo> + #<prof_att_filetto>]
