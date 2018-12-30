@@ -1,16 +1,16 @@
-(info: IN FIERI testina filettata -- Ctrl-U modifica)
+(info: IN FIERI filettatura interna -- Ctrl-U modifica)
 o<ronchini_filetto_cappuccio> sub
 
-#<prof_iniz_filetto>   =  #1 (= 4 prof iniz filetto)
-#<diam_int>   =  #2 (= 10 diam int)
-#<passaggi>   =  #3 (= 1 passaggi d'asportazione)
-#<profondita> =  #4 (= 8 profondita)
-#<passo>      =  #5 (= 0.6 passo filetto)
-#<principi>   =  #6 (= 1 principi. Max 4)
-#<velocita>   =  #7 (= 500 velocita)
-#<verso_elic> =  #8 (= 1  dx 1 sx -1 non serve ora)
-#<diam_fresa> =  #9 (= 1.00 diam tagliente)
-#<lung_fresa> = #10 (= 8.00 lungh fresa)
+#<inizio_filettatura>   =  #1 (= 4 mm dal bordo tappo)
+#<diam_int>         =  #2 (= 10 diam interno tappo)
+#<passaggi>         =  #3 (= 1 passaggi d'asportazione)
+#<fine_filettatura> =  #4 (= 8 mm dal bordo tappo)
+#<passo>            =  #5 (= 0.6 passo filetto)
+#<principi>         =  #6 (= 1 principi. Max 4)
+#<velocita>         =  #7 (= 500 velocita)
+#<verso_elic>       =  #8 (= 1  dx 1 sx -1 non serve ora)
+#<diam_fresa>       =  #9 (= 1.00 diam tagliente)
+#<lung_fresa>       = #10 (= 8.00 lungh fresa)
 ; COI VALORI DI DEFAULT, a video linux si vede un cerchio di 10 di diametro
 ; è dovuto alla combinazione dei valori immessi
 
@@ -28,115 +28,119 @@ F#<velocita>
 #<lunghezza_filetto>    = [#4+#1]
 
 ;___________Filettatura________
+#3                   = FIX[#3]; cautela contro virgole
+#6                   = FIX[#6]; cautela contro virgole
 #<passo_reale>       = [#5*#6]
 #<giri_elicoide>     = FIX[[#<lunghezza_filetto>/#<passo_reale>]]; arrontonda all'intero inferiore
-#<prof_ini_filetto>  = [ [#5 * sqrt[3]] * [2*sqrt[#3]] ]
-; #<prof_att_filetto>  = #<prof_ini_filetto> 
-; #<prof_suc_filetto>  = [ [ [ [#5/2]**2 ] * 3 ] / [sqrt[#3]*#<prof_att_filetto>] ]
+; MIGLIORA fare un modo da poter fare anche frazioni di elicoide
 #<prof_fin_filetto>  = [0.5 * #5 * sqrt[3]]
-; formula sopra https://www.cadem.com/single-post/cnc-threading-depth-of-cut
+#<prof_ini_filetto>  = [#<prof_fin_filetto>/sqrt[#3]]
+; la formula sopra trovata su
+; https://www.cadem.com/single-post/cnc-threading-depth-of-cut
+; prof_ini_filetto toglie 1/passaggi di area della gola filettata 
 
 ;___________Contatori__________
-#<conta_passaggi>       = 0 ; si definisce un un contatore
-; #<n_cerchi_interni>     = [#<raggio_int_pezzo>/#<raggio_fresa>]
-; #<n_cerchio_attuale>    = #<n_cerchi_interni>
+#<conta_passaggi>       = 1 ; si definisce un un contatore
 
 
 ; controlli. messi qui impediscono danni
-o10 if [#3 GT #10 OR #4 GT #10]; fermati e avverti
+; non fa nemmeno vedere il virtuale se la condizione è vera
+o10 if [#3 GT 4 OR #3 LT 1]
+ (MSG, Sono permessi 1, 2, 3 o 4 passaggi solamente)
+ M2 
+o10 elseif [#4 GT #10]; fermati e avverti
  (MSG, Fresa troppo corta per il lavoro ! )
- M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
-o10 endif
-
-o11 if [#6 GT 4 OR #6 LT 1]; fermati e avverti
+ M2
+o10 elseif [#6 GT 4 OR #6 LT 1]
  (MSG, Sono permessi 1, 2, 3 o 4 principi solamente)
  M2
-o11 endif
-
-o12 if [#9 GT 0.7*#2]; fermati e avverti #9 diam fresa #2 diam foro
+o10 elseif [#9 GT 0.7*#2];#9 diam fresa #2 diam foro
 ; 0.7 preso da manuale sandvik su mill threading
  (MSG, Fresa troppo larga per il lavoro ! )
- M2 ; non fa nemmeno vedere il virtuale se la condizione è vera
-o12 endif
+ M2
+o10 endif
 
-
-; spostamento cautelare al centro tappo
+; manovra di avvicinamento al pezzo
+; spostamento cautelare al centro tappo in due mosse
 G0 Z#<z_sicura>
 G0 X0 Y0 
-G0 Z#1 ; affonda al centro
+G0 Z#1 ; affonda al centro tappo
+; Il manuale CNC Peter Smid suggerisce di filettare a uscire
 
-
-o110 while[#<conta_passaggi> LT #3]
-; fintanto che il contatore passaggi è inferiore ai passaggi richiesti ...
-o1101 if [#3 EQ 1]
- #<prof_att_filetto> = #<prof_fin_filetto>
-o1101 elseif [#<conta_passaggi> EQ 0 AND #3 GT 1]
- #<prof_att_filetto>  = #<prof_ini_filetto> 
-o1101 elseif [#<conta_passaggi> GT 0 AND #3 GT 1]
- #<prof_att_filetto>  = [ [ [ [#5/2]**2 ] * 3 ] / [sqrt[#3]*#<prof_att_filetto>] ]
-; #<prof_att_filetto> = [#<prof_att_filetto> + #<prof_suc_filetto>]
-o1101 endif
-; sopra si calcola una profondita'di asportazione in modo da avere 
+; Sotto si calcola una profondita'di asportazione in modo da avere 
 ; un'area costante a ogni passaggio
-; TODO Migliorare in modo che sia costante il perimetro dell'utensile impegnato in asportazione
-; TODO sotto un tentativo commentato
-; #<prof_att_filetto> = [#5/[#3-#<conta_passaggi>]*sqrt[3]]
-g91
-#<raggio_att_pezzo> = [#<raggio_int_pezzo>+#<prof_att_filetto>]
-G1 X#<raggio_att_pezzo> F[#<velocita>/10] ; avvicinati al bordo piu' piano
-g90
-
+; Si divide l'area asportata in n parti uguali, una per passaggio
+; Invece di fare calcoli si ricorre ai numeri calcolati empiricamente
+; 1.414 et 1.732 come moltiplicatori del 2° 3° e 4° passaggio
+o110 while[#<conta_passaggi> LE #3]; LE, Lower or Equal
+; fintanto che il contatore passaggi è inferiore ai passaggi richiesti ...
+o1101 if [#<conta_passaggi> EQ 1]
+#<prof_att_filetto> = #<prof_ini_filetto>
+o1101 elseif [#<conta_passaggi> GT 1 AND LT 4 ]
+ #<prof_att_filetto>  = #<prof_ini_filetto> * 1.414]  
+o1101 elseif [#<conta_passaggi> EQ 4]
+#<prof_att_filetto>  = [#<prof_ini_filetto> * 1.732] 
+o1101 endif
+; calcolo del raggio effettivo di asportazione
+#<raggio_att_pezzo> = [#<raggio_int_pezzo> + #<prof_att_filetto>]
+g91 ; coordinate relative
+G1 X#<raggio_att_pezzo> F[#<velocita>/10] ;avvicinati al bordo piu' piano
+g90 ; coordinate assolute
 F#<velocita> ; riprendi la velocita di lavoro
+
+
 ; routine per filettatura interna dx.
-(MSG, esecuzione filettatura interna destra)
 ; questa parte sotto si occupa del numero di principi
 ; ovvero di spostare il punto iniziale intorno alla circonferenza interna
 ; coordinate polari. @n è la distanza e ^n è l'angolo
+; Il manuale CNC Peter Smid suggerisce di filettare a uscire
+; Siccome la fresa si muove M03, anche l'elicoide deve essere G03
+(MSG, esecuzione filettatura interna destra)
         o112 if [#6 EQ 1] ;#6 = numero di principi
-             G2 I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide>
+             G3  I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide>
              G0 X0 Y0
              G0 Z#1  
         o112 elseif [#6 EQ 2]
-             G2 I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G3  I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
              G0 X0 Y0
              G0 Z#1  
              ; coordinate polari, si sposta di un diametro
              G1 @[#<raggio_att_pezzo>] ^180
              (MSG, esecuzione secondo filetto interno)
-             G2 I[#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G3  I[#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
              G0 X0 Y0
              G0 Z#1  
         o112 elseif [#6 EQ 3]
-             G2 I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G3  I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
              G0 X0 Y0
              G0 Z#1
              G1 @[#<raggio_att_pezzo>] ^120 
-             G2 I[-cos[120]*#<raggio_att_pezzo>] J[-sin[120]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>              
+             G3  I[-cos[120]*#<raggio_att_pezzo>] J[-sin[120]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>              
              G0 X0 Y0 
              G0 Z#1
              G1 @[#<raggio_att_pezzo>] ^240 
-             G2 X#<_x> Y#<_y> I[-cos[240]*#<raggio_att_pezzo>] J[-sin[240]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>
+             G3  I[-cos[240]*#<raggio_att_pezzo>] J[-sin[240]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>
              G0 X0 Y0 
              G0 Z#1
         o112 elseif [#6 EQ 4]
-             G2  I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
+             G3  I[-#<raggio_att_pezzo>] J0 Z#<z_prof> P#<giri_elicoide> 
              G0 X0 Y0
              G0 Z#1
              G1 @[#<raggio_att_pezzo>] ^90 
-             G2  I[-cos[90]*#<raggio_att_pezzo>] J[-sin[90]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>              
+             G3  I[-cos[90]*#<raggio_att_pezzo>] J[-sin[90]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>              
              G0 X0 Y0 
              G0 Z#1
              G1 @[#<raggio_att_pezzo>] ^180
-             G2  I[-cos[180]*#<raggio_att_pezzo>] J[-sin[180]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>
+             G3  I[-cos[180]*#<raggio_att_pezzo>] J[-sin[180]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>
              G0 X0 Y0
              G0 Z#1
              G1 @[#<raggio_att_pezzo>] ^270 
-             G2  I[-cos[270]*#<raggio_att_pezzo>] J[-sin[270]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>  
+             G3  I[-cos[270]*#<raggio_att_pezzo>] J[-sin[270]*#<raggio_att_pezzo>] Z#<z_prof> P#<giri_elicoide>  
              G0 X0 Y0
              G0 Z#1            
-       o112 endif  ; fine routine filettatura dx
+       o112 endif  ; fine routine filettatura dx a passi multipli
 #<conta_passaggi> = [#<conta_passaggi>+1] ; aumenta di uno il contatore di passaggi
-o110 endwhile
+o110 endwhile ; fine del ciclo dei passaggi multipli di fresatura
 ; torna a casa
 G0 X0 Y0
 G0 Z#<Z_sicura>
